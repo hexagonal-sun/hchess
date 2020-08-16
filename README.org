@@ -1,0 +1,20 @@
+#+TITLE: HChess
+
+HChess is an attempt to learn haskell by means of writing a chess engine,
+something I've [[https://github.com/hexagonal-sun/mace][previouisly done in C++]].
+
+This software is in it's very early stages and only currently supports pretty
+printing of an initial board state.
+
+Current features:
+ - Data types for Ranks and Files.
+ - Define a tuple of (File, Rank) as a Locus.
+ - Direction types and applications to Locus to generate a new Locus.
+ - [[https://hackage.haskell.org/package/base-4.14.0.0/docs/Data-Ix.html][Ix]] implementation of Locus.
+ - Piece data types:
+   - Piece Kind
+   - Colour
+   - Piece
+ - Board representaiton using [[https://hackage.haskell.org/package/base-4.14.0.0/docs/Data-Ix.html][Array]] indexed by Locus
+ - Creation of starting board.
+ - Pretty printing of board layout.
