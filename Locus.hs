@@ -3,6 +3,7 @@ module Locus (
 ) where
 
 import Data.Ix
+import Control.Monad
 
 data File = FA | FB | FC | FD | FE | FF | FG | FH
   deriving(Eq, Ord, Ix, Bounded, Enum)
@@ -35,13 +36,16 @@ type Locus = (File, Rank)
 data Direction = North | East | South | West
   deriving(Eq, Show)
 
-move :: Locus -> Direction -> Maybe Locus
-move (file, rank) direction
+move' :: Locus -> Direction -> Maybe Locus
+move' (file, rank) direction
   | direction == North && rank == (maxBound :: Rank) = Nothing
   | direction == South && rank == (minBound :: Rank) = Nothing
   | direction == East  && file == (maxBound :: File) = Nothing
   | direction == West  && file == (minBound :: File) = Nothing
-move (file, rank) North = Just (file, succ rank)
-move (file, rank) East  = Just (succ file, rank)
-move (file, rank) South = Just (file, pred rank)
-move (file, rank) West  = Just (pred file, rank)
+move' (file, rank) North = Just (file, succ rank)
+move' (file, rank) East  = Just (succ file, rank)
+move' (file, rank) South = Just (file, pred rank)
+move' (file, rank) West  = Just (pred file, rank)
+
+move :: Locus -> [Direction] -> Maybe Locus
+move start dirs = foldM move' start dirs
