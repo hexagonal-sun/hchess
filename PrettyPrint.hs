@@ -23,26 +23,28 @@ getPieceKindChar King   = 'k'
 getPieceKindChar Queen  = 'q'
 
 instance PrettyPrint Rank where
-  pp R8 = putChar '8'
-  pp R7 = putChar '7'
-  pp R6 = putChar '6'
-  pp R5 = putChar '5'
-  pp R4 = putChar '4'
-  pp R3 = putChar '3'
-  pp R2 = putChar '2'
-  pp R1 = putChar '1'
+  pp x = putChar $ case x of
+    R8 -> '8'
+    R7 -> '7'
+    R6 -> '6'
+    R5 -> '5'
+    R4 -> '4'
+    R3 -> '3'
+    R2 -> '2'
+    R1 -> '1'
 
 instance PrettyPrint File where
-  pp FA = putChar 'A'
-  pp FB = putChar 'B'
-  pp FC = putChar 'C'
-  pp FD = putChar 'D'
-  pp FE = putChar 'E'
-  pp FF = putChar 'F'
-  pp FG = putChar 'G'
-  pp FH = putChar 'H'
+  pp x = putChar $ case x of
+    FA-> 'A'
+    FB-> 'B'
+    FC-> 'C'
+    FD-> 'D'
+    FE-> 'E'
+    FF-> 'F'
+    FG-> 'G'
+    FH-> 'H'
  
-instance PrettyPrint Piece where
+Instance PrettyPrint Piece where
   pp (Piece White k) = (putChar $ toUpper $ getPieceKindChar k)
   pp (Piece Black k) = (putChar $ toLower $ getPieceKindChar k)
 
