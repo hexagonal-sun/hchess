@@ -6,30 +6,10 @@ import Data.Ix
 import Control.Monad
 
 data File = FA | FB | FC | FD | FE | FF | FG | FH
-  deriving(Eq, Ord, Ix, Bounded, Enum)
-
-instance Show File where
-  show FA = "a"
-  show FB = "b"
-  show FC = "c"
-  show FD = "d"
-  show FE = "e"
-  show FF = "f"
-  show FG = "g"
-  show FH = "h"
+  deriving(Eq, Ord, Ix, Bounded, Enum, Show)
 
 data Rank = R1 | R2 | R3 | R4 | R5 | R6 | R7 | R8
-  deriving(Eq, Ord, Ix, Bounded, Enum)
-
-instance Show Rank where
-  show R1 = "1"
-  show R2 = "2"
-  show R3 = "3"
-  show R4 = "4"
-  show R5 = "5"
-  show R6 = "6"
-  show R7 = "7"
-  show R8 = "8"
+  deriving(Eq, Ord, Ix, Bounded, Enum, Show)
 
 type Locus = (File, Rank)
  
