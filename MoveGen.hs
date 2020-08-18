@@ -10,43 +10,43 @@ import Board
 import Locus
 import Piece
 
-data PieceDirection = PieceDirection [[Direction]] Bool
+data PieceVector = PieceVector [Vector] Bool
 
-orthoDirs :: [[Direction]]
-orthoDirs = [[North], [East], [South], [West]]
+orthoVecs :: [Vector]
+orthoVecs = [[North], [East], [South], [West]]
 
-diagDirs :: [[Direction]]
-diagDirs = [[North, East], [North, West],
+diagVecs :: [Vector]
+diagVecs = [[North, East], [North, West],
             [South, East], [South, West]]
 
-kindDirections' :: Locus -> Piece -> PieceDirection
-kindDirections' (_, R2) (Piece White Pawn) = PieceDirection [[North, North], [North]] False
-kindDirections' _       (Piece White Pawn) = PieceDirection [[North]] False
-kindDirections' (_, R7) (Piece Black Pawn) = PieceDirection [[South], [South, South]] False
-kindDirections' _       (Piece Black Pawn) = PieceDirection [[South]] False
-kindDirections' _       (Piece _ Knight)   = PieceDirection [[North, North, East], [North, North, West],
+kindVectors' :: Locus -> Piece -> PieceVector
+kindVectors' (_, R2) (Piece White Pawn) = PieceVector [[North, North], [North]] False
+kindVectors' _       (Piece White Pawn) = PieceVector [[North]] False
+kindVectors' (_, R7) (Piece Black Pawn) = PieceVector [[South], [South, South]] False
+kindVectors' _       (Piece Black Pawn) = PieceVector [[South]] False
+kindVectors' _       (Piece _ Knight)   = PieceVector [[North, North, East], [North, North, West],
                                                              [South, South, East], [South, South, West]]
                                                             False
-kindDirections' _       (Piece _ King)     = PieceDirection orthoDirs False
-kindDirections' _       (Piece _ Rook)     = PieceDirection orthoDirs True
-kindDirections' _       (Piece _ Bishop)   = PieceDirection diagDirs True
-kindDirections' _       (Piece _ Queen)    = PieceDirection (orthoDirs ++ diagDirs) True
+kindVectors' _       (Piece _ King)     = PieceVector orthoVecs False
+kindVectors' _       (Piece _ Rook)     = PieceVector orthoVecs True
+kindVectors' _       (Piece _ Bishop)   = PieceVector diagVecs True
+kindVectors' _       (Piece _ Queen)    = PieceVector (orthoVecs ++ diagVecs) True
 
-kindDirections :: Locus -> Maybe Piece -> PieceDirection
-kindDirections l (Just p) = kindDirections' l p
-kindDirections _ Nothing  = PieceDirection [] False
+kindVectors :: Locus -> Maybe Piece -> PieceVector
+kindVectors l (Just p) = kindVectors' l p
+kindVectors _ Nothing  = PieceVector [] False
 
-applyDirections' :: Maybe Locus -> [Direction] -> [Maybe Locus]
-applyDirections' Nothing _ = []
-applyDirections' (Just l) dir = x:applyDirections' x dir
+applyVectors' :: Maybe Locus -> Vector -> [Maybe Locus]
+applyVectors' Nothing _ = []
+applyVectors' (Just l) dir = x:applyVectors' x dir
   where x = move l dir
 
-applyDirections :: Locus -> [Direction] -> [Locus]
-applyDirections l d = catMaybes $ applyDirections' (Just l) d
+applyVectors :: Locus -> Vector -> [Locus]
+applyVectors l d = catMaybes $ applyVectors' (Just l) d
 
-getMoves :: Locus -> PieceDirection -> [Locus]
-getMoves l (PieceDirection dirs False) = mapMaybe (move l) dirs
-getMoves l (PieceDirection dirs True)  = concatMap (applyDirections l) dirs
+getMoves :: Locus -> PieceVector -> [Locus]
+getMoves l (PieceVector dirs False) = mapMaybe (move l) dirs
+getMoves l (PieceVector dirs True)  = concatMap (applyVectors l) dirs
 
 pseudoMoveGen' :: BoardState -> Locus -> Locus -> BoardState
 pseudoMoveGen' board from to = board // [(from, Nothing),
@@ -55,5 +55,5 @@ pseudoMoveGen' board from to = board // [(from, Nothing),
 
 pseudoMoveGen :: BoardState -> Locus -> [BoardState]
 pseudoMoveGen board l = map (pseudoMoveGen' board l) moves
-  where pd = kindDirections l $ board ! l
+  where pd = kindVectors l $ board ! l
         moves = getMoves l pd

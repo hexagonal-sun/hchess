@@ -1,5 +1,5 @@
 module Locus (
-  File(..), Rank(..), Locus, Direction(..), move
+  File(..), Rank(..), Locus, Direction(..), Vector, move
 ) where
 
 import Data.Ix
@@ -16,6 +16,8 @@ type Locus = (File, Rank)
 data Direction = North | East | South | West
   deriving(Eq, Show)
 
+type Vector = [Direction]
+
 move' :: Locus -> Direction -> Maybe Locus
 move' (file, rank) direction
   | direction == North && rank == (maxBound :: Rank) = Nothing
@@ -27,5 +29,5 @@ move' (file, rank) East  = Just (succ file, rank)
 move' (file, rank) South = Just (file, pred rank)
 move' (file, rank) West  = Just (pred file, rank)
 
-move :: Locus -> [Direction] -> Maybe Locus
+move :: Locus -> Vector -> Maybe Locus
 move = foldM move'
