@@ -8,7 +8,6 @@ import Piece
 import Data.Ix
 import Data.Array
 
-
 type SquareState = Maybe Piece
 type BoardState  = Array (File, Rank) SquareState
 
@@ -20,14 +19,15 @@ boardBounds = ((minBound :: File, minBound :: Rank),
                (maxBound :: File, maxBound :: Rank))
 
 backRank :: File -> PieceKind
-backRank FA = Rook
-backRank FB = Knight
-backRank FC = Bishop
-backRank FD = Queen
-backRank FE = King
-backRank FF = Bishop
-backRank FG = Knight
-backRank FH = Rook
+backRank f = case f of
+  FA -> Rook
+  FB -> Knight
+  FC -> Bishop
+  FD -> Queen
+  FE -> King
+  FF -> Bishop
+  FG -> Knight
+  FH -> Rook
 
 startingBoardPieceGen :: Locus -> SquareState
 startingBoardPieceGen (_, R2) = Just (Piece White Pawn)
