@@ -38,15 +38,15 @@ kindDirections _ Nothing  = PieceDirection [] False
 
 applyDirections' :: Maybe Locus -> [Direction] -> [Maybe Locus]
 applyDirections' Nothing _ = []
-applyDirections' (Just l) dir = x:(applyDirections' x dir)
+applyDirections' (Just l) dir = x:applyDirections' x dir
   where x = move l dir
 
 applyDirections :: Locus -> [Direction] -> [Locus]
 applyDirections l d = catMaybes $ applyDirections' (Just l) d
 
 getMoves :: Locus -> PieceDirection -> [Locus]
-getMoves l (PieceDirection dirs False) = catMaybes $ map (\d -> move l d) dirs
-getMoves l (PieceDirection dirs True)  = concat $ map (\d -> applyDirections l d) dirs
+getMoves l (PieceDirection dirs False) = mapMaybe (move l) dirs
+getMoves l (PieceDirection dirs True)  = concatMap (applyDirections l) dirs
 
 pseudoMoveGen' :: BoardState -> Locus -> Locus -> BoardState
 pseudoMoveGen' board from to = board // [(from, Nothing),

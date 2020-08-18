@@ -28,4 +28,4 @@ move' (file, rank) South = Just (file, pred rank)
 move' (file, rank) West  = Just (pred file, rank)
 
 move :: Locus -> [Direction] -> Maybe Locus
-move start dirs = foldM move' start dirs
+move = foldM move'

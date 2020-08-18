@@ -44,9 +44,9 @@ instance PrettyPrint File where
     FG-> 'G'
     FH-> 'H'
  
-Instance PrettyPrint Piece where
-  pp (Piece White k) = (putChar $ toUpper $ getPieceKindChar k)
-  pp (Piece Black k) = (putChar $ toLower $ getPieceKindChar k)
+instance PrettyPrint Piece where
+  pp (Piece White k) = putChar $ toUpper $ getPieceKindChar k
+  pp (Piece Black k) = putChar $ toLower $ getPieceKindChar k
 
 instance PrettyPrint SquareState where
   pp Nothing = putChar '.' >> putChar ' '
@@ -56,7 +56,7 @@ putRank :: BoardState -> Rank -> IO ()
 putRank board rank = do
   pp rank >> putChar ' '
   let idxes = [(f, rank) | f <- [minBound..] ::[File]]
-  mapM_ pp $ map (board !) idxes
+  mapM_ (pp . (board !)) idxes
 
 instance PrettyPrint BoardState where
   pp board = do
