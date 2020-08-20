@@ -36,17 +36,8 @@ kindVectors :: Locus -> Maybe Piece -> PieceVector
 kindVectors l (Just p) = kindVectors' l p
 kindVectors _ Nothing  = PieceVector [] False
 
-applyVectors' :: Maybe Locus -> Vector -> [Maybe Locus]
-applyVectors' Nothing _ = []
-applyVectors' (Just l) dir = x:applyVectors' x dir
-  where x = move l dir
-
-applyVectors :: Locus -> Vector -> [Locus]
-applyVectors l d = catMaybes $ applyVectors' (Just l) d
-
-getMoves :: Locus -> PieceVector -> [Locus]
-getMoves l (PieceVector dirs False) = mapMaybe (move l) dirs
-getMoves l (PieceVector dirs True)  = concatMap (applyVectors l) dirs
+getMoves :: Locus -> PieceVector -> [Ray]
+getMoves l (PieceVector vecs repeat) = map (applyVector l repeat) vecs
 
 pseudoMoveGen' :: BoardState -> Locus -> Locus -> BoardState
 pseudoMoveGen' board from to = board // [(from, Nothing),
@@ -54,6 +45,6 @@ pseudoMoveGen' board from to = board // [(from, Nothing),
 
 
 pseudoMoveGen :: BoardState -> Locus -> [BoardState]
-pseudoMoveGen board l = map (pseudoMoveGen' board l) moves
+pseudoMoveGen board l = map (pseudoMoveGen' board l) $ concat moves
   where pd = kindVectors l $ board ! l
         moves = getMoves l pd

@@ -1,9 +1,10 @@
 module Locus (
-  File(..), Rank(..), Locus, Direction(..), Vector, move
+  File(..), Rank(..), Locus, Direction(..), Vector, applyVector, Ray, move
 ) where
 
 import Data.Ix
 import Control.Monad
+import Data.Maybe
 
 data File = FA | FB | FC | FD | FE | FF | FG | FH
   deriving(Eq, Ord, Ix, Bounded, Enum, Show)
@@ -17,6 +18,7 @@ data Direction = North | East | South | West
   deriving(Eq, Show)
 
 type Vector = [Direction]
+type Ray = [Locus]
 
 move' :: Locus -> Direction -> Maybe Locus
 move' (file, rank) direction
@@ -31,3 +33,15 @@ move' (file, rank) West  = Just (pred file, rank)
 
 move :: Locus -> Vector -> Maybe Locus
 move = foldM move'
+
+applyVector' :: Maybe Locus -> Vector -> [Maybe Locus]
+applyVector' Nothing _ = []
+applyVector' (Just l) dir = x:applyVector' x dir
+  where x = move l dir
+
+applyVector :: Locus -> Bool -> Vector -> Ray
+applyVector l True v  = catMaybes $ applyVector' (Just l) v
+applyVector l False v = case nl of
+  Nothing -> []
+  Just nl ->  [nl]
+  where nl = move l v
