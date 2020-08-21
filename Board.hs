@@ -1,6 +1,7 @@
 module Board (
   SquareState,
   BoardState,
+  boardBounds,
   startingBoard,
 ) where
 import Locus
