@@ -2,8 +2,10 @@ module MoveGen (
   moveGen
 ) where
 
+import Data.Maybe
 import Data.Array
 import Board
+import Game
 import Locus
 import Piece
 
@@ -32,10 +34,6 @@ kindVectors _       (Piece _ Queen)    = MovementSpec (orthoVecs ++ diagVecs) Tr
 getRays :: Locus -> MovementSpec -> [Ray]
 getRays l (MovementSpec vecs repeatVec) = map (applyVector l repeatVec) vecs
 
-createBoards :: BoardState -> Locus -> Locus -> BoardState
-createBoards board from to = board // [(from, Nothing),
-                                       (to,   board ! from)]
-
 pruneRay :: BoardState -> Colour -> Ray -> Ray
 pruneRay _ _ []  = []
 pruneRay board c (nl:ray) = case p of
@@ -43,12 +41,12 @@ pruneRay board c (nl:ray) = case p of
                              Just (Piece otherColour _) -> [nl | otherColour /= c]
                            where p = board ! nl
 
-moveGen' :: BoardState -> Locus -> SquareState -> [BoardState]
+moveGen' :: GameState -> Locus -> SquareState -> [GameState]
 moveGen' _ _ Nothing = []
-moveGen' b l (Just p@(Piece c _)) = map (createBoards b l) $ concat validMoves
+moveGen' g@(GameState b _) l (Just p@(Piece c _)) = mapMaybe (makeMove g l) $ concat validMoves
   where movementSpec = kindVectors l p
         rays = getRays l movementSpec
         validMoves = map (pruneRay b c) rays
 
-moveGen :: BoardState -> Locus -> [BoardState]
-moveGen board l = moveGen' board l $ board ! l
+moveGen :: GameState -> Locus -> [GameState]
+moveGen game@(GameState b _) l = moveGen' game l $ b ! l
