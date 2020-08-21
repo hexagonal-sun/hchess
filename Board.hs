@@ -35,7 +35,6 @@ startingBoardPieceGen (_, R7) = Just (Piece Black Pawn)
 startingBoardPieceGen (file, R1) = Just (Piece White $ backRank file)
 startingBoardPieceGen (file, R8) = Just (Piece Black $ backRank file)
 startingBoardPieceGen (_, _) = Nothing
-  where br = King
 
 startingBoard :: BoardState
 startingBoard = mkArray startingBoardPieceGen boardBounds

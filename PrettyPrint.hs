@@ -5,7 +5,6 @@ module PrettyPrint (
   pp
 ) where
 import Data.Char
-import Data.List
 import Data.Array
 import Piece
 import Board

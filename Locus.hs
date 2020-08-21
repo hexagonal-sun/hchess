@@ -43,5 +43,5 @@ applyVector :: Locus -> Bool -> Vector -> Ray
 applyVector l True v  = catMaybes $ applyVector' (Just l) v
 applyVector l False v = case nl of
   Nothing -> []
-  Just nl ->  [nl]
+  Just nextLoc ->  [nextLoc]
   where nl = move l v
