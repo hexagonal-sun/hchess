@@ -9,6 +9,7 @@ import Data.Array
 import Piece
 import Board
 import Locus
+import Game
 
 class PrettyPrint a where
   pp :: a -> IO ()
@@ -63,3 +64,9 @@ instance PrettyPrint BoardState where
     putStr "  "
     mapM_ (\f -> pp f >> putChar ' ') ([minBound..] :: [File])
     putStrLn ""
+
+instance PrettyPrint GameState where
+  pp (GameState board nextColour) = do
+    pp board
+    putStr "Next to move: "
+    print nextColour
