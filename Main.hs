@@ -10,8 +10,8 @@ main = do
   let board = startingBoard
   pp board
   putStrLn "Bishop"
-  let boards = pseudoMoveGen board (FC, R1)
+  let boards = moveGen board (FC, R1)
   mapM_ pp boards
   putStrLn "Pawn"
-  let boards = pseudoMoveGen board (FB, R2)
+  let boards = moveGen board (FB, R2)
   mapM_ pp boards

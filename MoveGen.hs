@@ -1,16 +1,13 @@
 module MoveGen (
-  pseudoMoveGen
+  moveGen
 ) where
 
 import Data.Array
-import Data.Maybe
-import Data.List
-import Control.Monad
 import Board
 import Locus
 import Piece
 
-data PieceVector = PieceVector [Vector] Bool
+data MovementSpec = MovementSpec [Vector] Bool
 
 orthoVecs :: [Vector]
 orthoVecs = [[North], [East], [South], [West]]
@@ -19,32 +16,39 @@ diagVecs :: [Vector]
 diagVecs = [[North, East], [North, West],
             [South, East], [South, West]]
 
-kindVectors' :: Locus -> Piece -> PieceVector
-kindVectors' (_, R2) (Piece White Pawn) = PieceVector [[North, North], [North]] False
-kindVectors' _       (Piece White Pawn) = PieceVector [[North]] False
-kindVectors' (_, R7) (Piece Black Pawn) = PieceVector [[South], [South, South]] False
-kindVectors' _       (Piece Black Pawn) = PieceVector [[South]] False
-kindVectors' _       (Piece _ Knight)   = PieceVector [[North, North, East], [North, North, West],
-                                                             [South, South, East], [South, South, West]]
-                                                            False
-kindVectors' _       (Piece _ King)     = PieceVector orthoVecs False
-kindVectors' _       (Piece _ Rook)     = PieceVector orthoVecs True
-kindVectors' _       (Piece _ Bishop)   = PieceVector diagVecs True
-kindVectors' _       (Piece _ Queen)    = PieceVector (orthoVecs ++ diagVecs) True
+kindVectors :: Locus -> Piece -> MovementSpec
+kindVectors (_, R2) (Piece White Pawn) = MovementSpec [[North, North], [North]] False
+kindVectors _       (Piece White Pawn) = MovementSpec [[North]] False
+kindVectors (_, R7) (Piece Black Pawn) = MovementSpec [[South], [South, South]] False
+kindVectors _       (Piece Black Pawn) = MovementSpec [[South]] False
+kindVectors _       (Piece _ Knight)   = MovementSpec [[North, North, East], [North, North, West],
+                                                        [South, South, East], [South, South, West]]
+                                         False
+kindVectors _       (Piece _ King)     = MovementSpec orthoVecs False
+kindVectors _       (Piece _ Rook)     = MovementSpec orthoVecs True
+kindVectors _       (Piece _ Bishop)   = MovementSpec diagVecs True
+kindVectors _       (Piece _ Queen)    = MovementSpec (orthoVecs ++ diagVecs) True
 
-kindVectors :: Locus -> Maybe Piece -> PieceVector
-kindVectors l (Just p) = kindVectors' l p
-kindVectors _ Nothing  = PieceVector [] False
+getRays :: Locus -> MovementSpec -> [Ray]
+getRays l (MovementSpec vecs repeatVec) = map (applyVector l repeatVec) vecs
 
-getMoves :: Locus -> PieceVector -> [Ray]
-getMoves l (PieceVector vecs repeat) = map (applyVector l repeat) vecs
+createBoards :: BoardState -> Locus -> Locus -> BoardState
+createBoards board from to = board // [(from, Nothing),
+                                       (to,   board ! from)]
 
-pseudoMoveGen' :: BoardState -> Locus -> Locus -> BoardState
-pseudoMoveGen' board from to = board // [(from, Nothing),
-                                         (to,   board ! from)]
+pruneRay :: BoardState -> Colour -> Ray -> Ray
+pruneRay _ _ []  = []
+pruneRay board c (nl:ray) = case p of
+                             Nothing -> nl:pruneRay board c ray
+                             Just (Piece otherColour _) -> [nl | otherColour /= c]
+                           where p = board ! nl
 
+moveGen' :: BoardState -> Locus -> SquareState -> [BoardState]
+moveGen' _ _ Nothing = []
+moveGen' b l (Just p@(Piece c _)) = map (createBoards b l) $ concat validMoves
+  where movementSpec = kindVectors l p
+        rays = getRays l movementSpec
+        validMoves = map (pruneRay b c) rays
 
-pseudoMoveGen :: BoardState -> Locus -> [BoardState]
-pseudoMoveGen board l = map (pseudoMoveGen' board l) $ concat moves
-  where pd = kindVectors l $ board ! l
-        moves = getMoves l pd
+moveGen :: BoardState -> Locus -> [BoardState]
+moveGen board l = moveGen' board l $ board ! l
