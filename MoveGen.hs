@@ -41,12 +41,13 @@ pruneRay board c (nl:ray) = case p of
                              Just (Piece otherColour _) -> [nl | otherColour /= c]
                            where p = board ! nl
 
-moveGen' :: GameState -> Locus -> SquareState -> [GameState]
-moveGen' _ _ Nothing = []
-moveGen' g@(GameState b _) l (Just p@(Piece c _)) = mapMaybe (makeMove g l) $ concat validMoves
-  where movementSpec = kindVectors l p
-        rays = getRays l movementSpec
-        validMoves = map (pruneRay b c) rays
+moveGen' :: GameState -> Locus -> [GameState]
+moveGen' g@(GameState b _) l = case b ! l of
+  Nothing -> []
+  Just p@(Piece c _) -> mapMaybe (makeMove g l) $ concat validMoves
+    where movementSpec = kindVectors l p
+          rays = getRays l movementSpec
+          validMoves = map (pruneRay b c) rays
 
-moveGen :: GameState -> Locus -> [GameState]
-moveGen game@(GameState b _) l = moveGen' game l $ b ! l
+moveGen :: GameState -> [GameState]
+moveGen game@(GameState b _) = concat $ map (moveGen' game) $ indices b
