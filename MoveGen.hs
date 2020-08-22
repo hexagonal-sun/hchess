@@ -36,10 +36,9 @@ getRays l (MovementSpec vecs repeatVec) = map (applyVector l repeatVec) vecs
 
 pruneRay :: BoardState -> Colour -> Ray -> Ray
 pruneRay _ _ []  = []
-pruneRay board c (nl:ray) = case p of
+pruneRay board c (nl:ray) = case board ! nl of
                              Nothing -> nl:pruneRay board c ray
                              Just (Piece otherColour _) -> [nl | otherColour /= c]
-                           where p = board ! nl
 
 moveGen' :: GameState -> Locus -> [GameState]
 moveGen' g@(GameState b _) l = case b ! l of
