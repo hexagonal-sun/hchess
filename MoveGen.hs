@@ -49,4 +49,4 @@ moveGen' g@(GameState b _) l = case b ! l of
           validMoves = map (pruneRay b c) rays
 
 moveGen :: GameState -> [GameState]
-moveGen game@(GameState b _) = concat $ map (moveGen' game) $ indices b
+moveGen game@(GameState b _) = concatMap (moveGen' game) $ indices b
