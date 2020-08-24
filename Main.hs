@@ -5,7 +5,7 @@ import Game
 
 perft :: Int -> GameState -> Int
 perft 0 _  = 1
-perft n state = sum $ map (perft (n - 1)) $ moveGen state
+perft n state = sum $ map (\(_,_,s) -> perft (n - 1) s) $ moveGen state
 
 main :: IO ()
 main = do

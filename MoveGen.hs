@@ -52,15 +52,17 @@ isSquareUnderAttack' b l p = any (isRayAttacking b p) $ getRays l $ kindVectors 
 isSquareUnderAttack :: BoardState -> Colour -> Locus -> Bool
 isSquareUnderAttack b c l = any (isSquareUnderAttack' b l . Piece c) allKinds
 
-moveGen' :: GameState -> Locus -> [GameState]
-moveGen' g@(GameState b nc) l = case b ! l of
+moveGen' :: GameState -> Locus -> [(Locus, Locus, GameState)]
+moveGen' g@(GameState b nc) from = case b ! from of
   Nothing -> []
   Just (Piece c _) | c /= nc -> []
-  Just p@(Piece c k) -> mapMaybe (makeMove g l) validMoves'
-    where movementSpec = kindVectors l p
-          rays = getRays l movementSpec
+  Just p@(Piece c k) -> mapMaybe (\to -> case makeMove g from to of
+                                     Nothing -> Nothing
+                                     Just state -> Just (from, to, state)) validMoves'
+    where movementSpec = kindVectors from p
+          rays = getRays from movementSpec
           validMoves = concatMap (pruneRay b c) rays
           validMoves' = if k == King then filter (isSquareUnderAttack b (switch c)) validMoves else validMoves
 
-moveGen :: GameState -> [GameState]
+moveGen :: GameState -> [(Locus, Locus, GameState)]
 moveGen game@(GameState b _) = concatMap (moveGen' game) $ indices b
