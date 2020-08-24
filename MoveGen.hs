@@ -40,13 +40,27 @@ pruneRay board c (nl:ray) = case board ! nl of
                              Nothing -> nl:pruneRay board c ray
                              Just (Piece otherColour _) -> [nl | otherColour /= c]
 
+isRayAttacking :: BoardState -> Piece -> Ray -> Bool
+isRayAttacking _ _ [] = False
+isRayAttacking b p (l:r)  = case b ! l of
+  Nothing -> isRayAttacking b p r
+  Just p' -> p == p'
+
+isSquareUnderAttack' :: BoardState -> Locus -> Piece -> Bool
+isSquareUnderAttack' b l p = any (isRayAttacking b p) $ getRays l $ kindVectors l p
+
+isSquareUnderAttack :: BoardState -> Colour -> Locus -> Bool
+isSquareUnderAttack b c l = any (isSquareUnderAttack' b l . Piece c) allKinds
+
 moveGen' :: GameState -> Locus -> [GameState]
-moveGen' g@(GameState b _) l = case b ! l of
+moveGen' g@(GameState b nc) l = case b ! l of
   Nothing -> []
-  Just p@(Piece c _) -> mapMaybe (makeMove g l) $ concat validMoves
+  Just (Piece c _) | c /= nc -> []
+  Just p@(Piece c k) -> mapMaybe (makeMove g l) validMoves'
     where movementSpec = kindVectors l p
           rays = getRays l movementSpec
-          validMoves = map (pruneRay b c) rays
+          validMoves = concatMap (pruneRay b c) rays
+          validMoves' = if k == King then filter (isSquareUnderAttack b (switch c)) validMoves else validMoves
 
 moveGen :: GameState -> [GameState]
 moveGen game@(GameState b _) = concatMap (moveGen' game) $ indices b
