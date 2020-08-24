@@ -17,13 +17,9 @@ createBoard board from to = board // [(from, Nothing),
 
 makeMove :: GameState -> Locus -> Locus -> Maybe GameState
 makeMove (GameState board nextColour) from to =
-  case sq of
-    Nothing           -> Nothing
-    Just (Piece c _) -> if c == nextColour then
-      Just $ GameState (createBoard board from to) $ switch nextColour
-      else
-      Nothing
-  where sq = board ! from
+  case board ! from of
+    Nothing -> Nothing
+    Just _  -> Just $ GameState (createBoard board from to) $ switch nextColour
 
 newGame :: GameState
 newGame = GameState startingBoard White
