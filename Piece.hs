@@ -20,4 +20,4 @@ switch White = Black
 switch Black = White
 
 data Piece = Piece Colour PieceKind
-  deriving(Show)
+  deriving(Show, Eq)
