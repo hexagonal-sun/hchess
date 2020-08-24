@@ -1,5 +1,6 @@
 module Piece (
   PieceKind(..),
+  allKinds,
   Piece(..),
   switch,
   Colour(..)
@@ -7,6 +8,9 @@ module Piece (
 
 data PieceKind = Pawn | Rook | Bishop | Knight | Queen | King
   deriving(Eq, Show)
+
+allKinds :: [PieceKind]
+allKinds = [Pawn, Rook, Bishop, Knight, Queen, King]
 
 data Colour = White | Black
   deriving(Show, Eq)
