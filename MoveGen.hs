@@ -24,7 +24,9 @@ kindVectors _       (Piece White Pawn) = MovementSpec [[North]] False
 kindVectors (_, R7) (Piece Black Pawn) = MovementSpec [[South], [South, South]] False
 kindVectors _       (Piece Black Pawn) = MovementSpec [[South]] False
 kindVectors _       (Piece _ Knight)   = MovementSpec [[North, North, East], [North, North, West],
-                                                        [South, South, East], [South, South, West]]
+                                                        [South, South, East], [South, South, West],
+                                                        [East, East, North], [East, East, South],
+                                                        [West, West, North], [West, West, South]]
                                          False
 kindVectors _       (Piece _ King)     = MovementSpec orthoVecs False
 kindVectors _       (Piece _ Rook)     = MovementSpec orthoVecs True
