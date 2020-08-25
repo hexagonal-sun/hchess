@@ -33,8 +33,9 @@ kindVectors _       (Piece _ Rook)     = MovementSpec orthoVecs True
 kindVectors _       (Piece _ Bishop)   = MovementSpec diagVecs True
 kindVectors _       (Piece _ Queen)    = MovementSpec (orthoVecs ++ diagVecs) True
 
-getRays :: Locus -> MovementSpec -> [Ray]
-getRays l (MovementSpec vecs repeatVec) = map (applyVector l repeatVec) vecs
+getRays :: Locus -> Piece -> [Ray]
+getRays l p = case kindVectors l p of
+  (MovementSpec vecs repeatVec) -> map (applyVector l repeatVec) vecs
 
 pruneRay :: BoardState -> Colour -> Ray -> Ray
 pruneRay _ _ []  = []
@@ -49,7 +50,7 @@ isRayAttacking b p (l:r)  = case b ! l of
   Just p' -> p == p'
 
 isSquareUnderAttack' :: BoardState -> Locus -> Piece -> Bool
-isSquareUnderAttack' b l p = any (isRayAttacking b p) $ getRays l $ kindVectors l p
+isSquareUnderAttack' b l p = any (isRayAttacking b p) $ getRays l p
 
 isSquareUnderAttack :: BoardState -> Colour -> Locus -> Bool
 isSquareUnderAttack b c l = any (isSquareUnderAttack' b l . Piece c) allKinds
@@ -61,8 +62,7 @@ moveGen' g@(GameState b nc) from = case b ! from of
   Just p@(Piece c k) -> mapMaybe (\to -> case makeMove g from to of
                                      Nothing -> Nothing
                                      Just state -> Just (from, to, state)) validMoves'
-    where movementSpec = kindVectors from p
-          rays = getRays from movementSpec
+    where rays = getRays from p
           validMoves = concatMap (pruneRay b c) rays
           validMoves' = if k == King then filter (isSquareUnderAttack b (switch c)) validMoves else validMoves
 
