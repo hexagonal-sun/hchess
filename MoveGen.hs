@@ -64,7 +64,7 @@ moveGen' g@(GameState b nc) from = case b ! from of
                                      Just state -> Just (from, to, state)) validMoves'
     where rays = getRays from p
           validMoves = concatMap (pruneRay b c) rays
-          validMoves' = if k == King then filter (isSquareUnderAttack b (switch c)) validMoves else validMoves
+          validMoves' = if k == King then filter (not . isSquareUnderAttack b (switch c)) validMoves else validMoves
 
 moveGen :: GameState -> [(Locus, Locus, GameState)]
 moveGen game@(GameState b _) = concatMap (moveGen' game) $ indices b
