@@ -9,7 +9,7 @@ import Game
 import Locus
 import Piece
 
-data MovementSpec = MovementSpec [Vector] Bool
+data MovementSpec = MovementSpec [Vector] Int
 
 orthoVecs :: [Vector]
 orthoVecs = [[North], [East], [South], [West]]
@@ -19,19 +19,19 @@ diagVecs = [[North, East], [North, West],
             [South, East], [South, West]]
 
 kindVectors :: Locus -> Piece -> MovementSpec
-kindVectors (_, R2) (Piece White Pawn) = MovementSpec [[North, North], [North]] False
-kindVectors _       (Piece White Pawn) = MovementSpec [[North]] False
-kindVectors (_, R7) (Piece Black Pawn) = MovementSpec [[South], [South, South]] False
-kindVectors _       (Piece Black Pawn) = MovementSpec [[South]] False
+kindVectors (_, R2) (Piece White Pawn) = MovementSpec [[North]] 2
+kindVectors _       (Piece White Pawn) = MovementSpec [[North]] 1
+kindVectors (_, R7) (Piece Black Pawn) = MovementSpec [[South]] 2
+kindVectors _       (Piece Black Pawn) = MovementSpec [[South]] 1
 kindVectors _       (Piece _ Knight)   = MovementSpec [[North, North, East], [North, North, West],
                                                         [South, South, East], [South, South, West],
                                                         [East, East, North], [East, East, South],
                                                         [West, West, North], [West, West, South]]
-                                         False
-kindVectors _       (Piece _ King)     = MovementSpec orthoVecs False
-kindVectors _       (Piece _ Rook)     = MovementSpec orthoVecs True
-kindVectors _       (Piece _ Bishop)   = MovementSpec diagVecs True
-kindVectors _       (Piece _ Queen)    = MovementSpec (orthoVecs ++ diagVecs) True
+                                         1
+kindVectors _       (Piece _ King)     = MovementSpec orthoVecs 1
+kindVectors _       (Piece _ Rook)     = MovementSpec orthoVecs repeatEntireSpan
+kindVectors _       (Piece _ Bishop)   = MovementSpec diagVecs repeatEntireSpan
+kindVectors _       (Piece _ Queen)    = MovementSpec (orthoVecs ++ diagVecs) repeatEntireSpan
 
 getRays :: Locus -> Piece -> [Ray]
 getRays l p = case kindVectors l p of

@@ -1,5 +1,13 @@
 module Locus (
-  File(..), Rank(..), Locus, Direction(..), Vector, applyVector, Ray, move
+  File(..),
+  Rank(..),
+  Locus,
+  Direction(..),
+  Vector,
+  applyVector,
+  Ray,
+  move,
+  repeatEntireSpan
 ) where
 
 import Data.Ix
@@ -34,14 +42,14 @@ move' (file, rank) West  = Just (pred file, rank)
 move :: Locus -> Vector -> Maybe Locus
 move = foldM move'
 
-applyVector' :: Maybe Locus -> Vector -> [Maybe Locus]
-applyVector' Nothing _ = []
-applyVector' (Just l) dir = x:applyVector' x dir
+applyVector' :: Maybe Locus -> Int -> Vector -> [Maybe Locus]
+applyVector' _ 0 _ = []
+applyVector' Nothing _ _ = []
+applyVector' (Just l) n dir = x:applyVector' x (n-1) dir
   where x = move l dir
 
-applyVector :: Locus -> Bool -> Vector -> Ray
-applyVector l True v  = catMaybes $ applyVector' (Just l) v
-applyVector l False v = case nl of
-  Nothing -> []
-  Just nextLoc ->  [nextLoc]
-  where nl = move l v
+applyVector :: Locus -> Int -> Vector -> Ray
+applyVector l n v  = catMaybes $ applyVector' (Just l) n v
+
+repeatEntireSpan :: Int
+repeatEntireSpan = 8
