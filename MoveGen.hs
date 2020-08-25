@@ -28,7 +28,7 @@ kindVectors _       (Piece _ Knight)   = MovementSpec [[North, North, East], [No
                                                         [East, East, North], [East, East, South],
                                                         [West, West, North], [West, West, South]]
                                          1
-kindVectors _       (Piece _ King)     = MovementSpec orthoVecs 1
+kindVectors _       (Piece _ King)     = MovementSpec (orthoVecs ++ diagVecs) 1
 kindVectors _       (Piece _ Rook)     = MovementSpec orthoVecs repeatEntireSpan
 kindVectors _       (Piece _ Bishop)   = MovementSpec diagVecs repeatEntireSpan
 kindVectors _       (Piece _ Queen)    = MovementSpec (orthoVecs ++ diagVecs) repeatEntireSpan
