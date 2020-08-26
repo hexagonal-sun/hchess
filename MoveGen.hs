@@ -88,4 +88,5 @@ moveGen' g@(GameState b nc) from = case b ! from of
           validMoves' = if k == King then filter (not . isSquareUnderAttack g (switch c)) validMoves else validMoves
 
 moveGen :: GameState -> [(Locus, Locus, GameState)]
-moveGen game@(GameState b _) = concatMap (moveGen' game) $ indices b
+moveGen game@(GameState b c) = filter (\(_,_,g) -> not $ isInCheck c g) candidateMoves
+  where candidateMoves = concatMap (moveGen' game) $ indices b
