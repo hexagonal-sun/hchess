@@ -19,10 +19,12 @@ diagVecs = [[North, East], [North, West],
             [South, East], [South, West]]
 
 kindVectors :: Locus -> Piece -> MovementSpec
-kindVectors (_, R2) (Piece White Pawn) = MovementSpec [[North]] 2
-kindVectors _       (Piece White Pawn) = MovementSpec [[North]] 1
-kindVectors (_, R7) (Piece Black Pawn) = MovementSpec [[South]] 2
-kindVectors _       (Piece Black Pawn) = MovementSpec [[South]] 1
+kindVectors (_, rank) (Piece c Pawn)   = MovementSpec [[dir]] n
+                                         where n = case rank of
+                                                 R2 -> 2
+                                                 R7 -> 2
+                                                 _  -> 1
+                                               dir = if c == White then North else South
 kindVectors _       (Piece _ Knight)   = MovementSpec [[North, North, East], [North, North, West],
                                                         [South, South, East], [South, South, West],
                                                         [East, East, North], [East, East, South],
