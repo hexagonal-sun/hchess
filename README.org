@@ -18,3 +18,6 @@ Current features:
  - Board representaiton using [[https://hackage.haskell.org/package/base-4.14.0.0/docs/Data-Ix.html][Array]] indexed by Locus
  - Creation of starting board.
  - Pretty printing of board layout.
+ - GameState class that encapsulates all game state
+ - Move generation that's valid up to perft 4 from starting position
+ - [[https://www.chessprogramming.org/Perft][Perft]] checking of movegen
