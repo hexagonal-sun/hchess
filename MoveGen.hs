@@ -26,13 +26,16 @@ isOccupied b (Just l) = case b ! l of
 
 kindVectors :: GameState -> Locus -> Piece -> MovementSpec
 kindVectors (GameState b _) l@(_, rank) (Piece c Pawn) = MovementSpec (y:x) n
-                                         where n = case rank of
-                                                 R2 -> 2
-                                                 R7 -> 2
-                                                 _  -> 1
-                                               dir = if c == White then North else South
-                                               attackVecs = [[dir,East],[dir,West]]
+                                         where dir = if c == White then North else South
                                                moveOcc = isOccupied b . move l
+                                               atHome = case (rank,c) of
+                                                 (R7,Black) -> True
+                                                 (R2,White) -> True
+                                                 _          -> False
+                                               n = case atHome of
+                                                 True -> if moveOcc [dir,dir] then 1 else 2
+                                                 _    -> 1
+                                               attackVecs = [[dir,East],[dir,West]]
                                                x = filter moveOcc attackVecs
                                                y = [dir | not $ moveOcc [dir]]
 
