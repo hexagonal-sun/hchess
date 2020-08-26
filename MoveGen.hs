@@ -71,6 +71,11 @@ isSquareUnderAttack' g@(GameState b _) l p = any (isRayAttacking b p) $ getRays 
 isSquareUnderAttack :: GameState -> Colour -> Locus -> Bool
 isSquareUnderAttack g c l = any (isSquareUnderAttack' g l . Piece c) allKinds
 
+isInCheck :: Colour -> GameState -> Bool
+isInCheck c g@(GameState b _) = any (\i -> case b ! i of
+                                      Just (Piece c' King) -> (c == c') && isSquareUnderAttack g (switch c) i
+                                      _ -> False) $ indices b
+
 moveGen' :: GameState -> Locus -> [(Locus, Locus, GameState)]
 moveGen' g@(GameState b nc) from = case b ! from of
   Nothing -> []
