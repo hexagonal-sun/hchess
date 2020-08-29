@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module Fen (pFen) where
+module Fen (parseFen) where
 
 import Data.Array
 import Data.Char
@@ -10,6 +10,7 @@ import Text.Megaparsec.Char
 import Piece
 import Board
 import Locus
+import Game
 
 type Parser = Parsec Void String
 
@@ -41,6 +42,12 @@ pColour = choice
   [ White <$ char 'w'
   , Black <$ char 'b']
 
+data FEN = FEN [[FENSpec]] Colour
+pFen :: Parser FEN
+pFen = do
+  b <- pBoard
+  space
+  FEN b <$> pColour
 
 createBoardRow :: [FENSpec] -> Maybe Locus ->  [(Locus,SquareState)]
 createBoardRow [] _ = []
@@ -57,7 +64,8 @@ createBoard s = concatMap (\(rs,spec) -> createBoardRow spec $ Just rs) ls
         rows = start:applyVector start 7 [South]
         ls = zip rows s
 
-pFen :: String -> Maybe BoardState
-pFen s = case parseMaybe pBoard s of
-  Nothing -> Nothing
-  Just spec -> Just $ array boardBounds $ createBoard spec
+parseFen :: String -> Maybe GameState
+parseFen s = do
+  (FEN spec c) <- parseMaybe pFen s
+  let board = array boardBounds $ createBoard spec
+  return (GameState board c)
