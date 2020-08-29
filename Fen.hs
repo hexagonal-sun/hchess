@@ -7,7 +7,6 @@ import Data.Char
 import Data.Void
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
-import Debug.Trace
 import Piece
 import Board
 import Locus
