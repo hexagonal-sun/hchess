@@ -7,12 +7,24 @@ import Data.Char
 import Data.Void
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
+import Control.Monad.Except
+import Control.Monad.Extra
 import Piece
 import Board
 import Locus
 import Game
 
+data FenError = ParseError String
+              | RowTooShort Rank
+              | RowTooLong
+
+instance Show FenError where
+  show (ParseError s)  = "Error parsing FEN String:\n" ++ s
+  show (RowTooShort r) = "Error Processing FEN String: Row specification too short at rank: " ++ show r
+  show RowTooLong      = "Error Processing FEN String: Row specification too long"
+
 type Parser = Parsec Void String
+type FenMonad = Either FenError
 
 newtype FENSpace = FENSpace Int deriving (Show)
 pSpace :: Parser FENSpace
@@ -49,23 +61,31 @@ pFen = do
   space
   FEN b <$> pColour
 
-createBoardRow :: [FENSpec] -> Maybe Locus ->  [(Locus,SquareState)]
-createBoardRow [] _ = []
-createBoardRow _ Nothing = []
-createBoardRow (s:xs) (Just l) = case s of
-  Left piece -> (l,Just piece):createBoardRow xs (move l [East])
-  Right (FENSpace n) -> map (,Nothing) ray ++ createBoardRow xs next
-    where ray = l:applyVector l (n - 1) [East]
-          next = move (last ray) [East]
+createBoardRow :: [FENSpec] -> Maybe Locus ->  FenMonad [(Locus,SquareState)]
+createBoardRow []      Nothing      = return []
+createBoardRow _       Nothing      = throwError RowTooLong
+createBoardRow []     (Just (_, r)) = throwError $ RowTooShort r
+createBoardRow (s:xs) (Just l)      = case s of
+  Left piece -> do
+    np <- createBoardRow xs (move l [East])
+    return $ (l,Just piece):np
+  Right (FENSpace n) -> do
+    let ray  = l:applyVector l (n - 1) [East]
+    let next = move (last ray) [East]
+    np <- createBoardRow xs next
+    return $ map (,Nothing) ray ++ np
 
-createBoard :: [[FENSpec]] -> [(Locus,SquareState)]
-createBoard s = concatMap (\(rs,spec) -> createBoardRow spec $ Just rs) ls
-  where start = (FA,R8)
-        rows = start:applyVector start 7 [South]
-        ls = zip rows s
+createBoard :: [[FENSpec]] -> FenMonad [(Locus,SquareState)]
+createBoard s = do
+  let start = (FA,R8)
+      rows = start:applyVector start 7 [South]
+      ls = zip rows s
+  concatMapM (\(rs,spec) -> createBoardRow spec $ Just rs) ls
 
-parseFen :: String -> Maybe GameState
-parseFen s = do
-  (FEN spec c) <- parseMaybe pFen s
-  let board = array boardBounds $ createBoard spec
-  return (GameState board c)
+parseFen :: String -> FenMonad GameState
+parseFen s = case parse pFen "f" s of
+  Left r -> throwError $ ParseError $ errorBundlePretty r
+  Right (FEN spec c) -> do
+    boardInitaliser <- createBoard spec
+    let board = array boardBounds boardInitaliser
+    return $ GameState board c

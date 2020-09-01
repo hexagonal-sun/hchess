@@ -2,6 +2,8 @@ module Main where
 
 import MoveGen
 import Game
+import Fen
+import PrettyPrint
 
 perft' :: Int -> GameState -> Int
 perft' 0 _  = 1
@@ -17,5 +19,8 @@ perft state n = do
 
 main :: IO ()
 main = do
-  let g = newGame
-  mapM_ (perft g) [1..4]
+  f <- getLine
+  let g = parseFen f
+  case g of
+    Left err -> print err
+    Right game -> pp game
