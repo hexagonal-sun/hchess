@@ -14,14 +14,23 @@ import Board
 import Locus
 import Game
 
-data FenError = ParseError String
-              | RowTooShort Rank
+data FenProcessingError = RowTooShort Rank
               | RowTooLong
+              | NoKing Colour
+              | TooManyKings Colour
+
+data FenError = ParseError String
+              | ProcessingError FenProcessingError
+
+instance Show FenProcessingError where
+  show (RowTooShort r) = "Error Processing FEN String: Row specification too short at rank: " ++ show r
+  show RowTooLong      = "Row specification too long"
+  show (NoKing c)      = "no " ++ show c ++ " king found"
+  show (TooManyKings c)= "too many " ++ show c ++ " kings found"
 
 instance Show FenError where
-  show (ParseError s)  = "Error parsing FEN String:\n" ++ s
-  show (RowTooShort r) = "Error Processing FEN String: Row specification too short at rank: " ++ show r
-  show RowTooLong      = "Error Processing FEN String: Row specification too long"
+  show (ParseError s)      = "Error parsing FEN String:\n" ++ s
+  show (ProcessingError e) = "Error processing FEN string: " ++ show e
 
 type Parser = Parsec Void String
 type FenMonad = Either FenError
@@ -63,16 +72,16 @@ pFen = do
 
 createBoardRow :: [FENSpec] -> Maybe Locus ->  FenMonad [(Locus,SquareState)]
 createBoardRow []      Nothing      = return []
-createBoardRow _       Nothing      = throwError RowTooLong
-createBoardRow []     (Just (_, r)) = throwError $ RowTooShort r
+createBoardRow _       Nothing      = throwError $ ProcessingError RowTooLong
+createBoardRow []     (Just (_, r)) = throwError $ ProcessingError $ RowTooShort r
 createBoardRow (s:xs) (Just l)      = case s of
   Left piece -> do
     np <- createBoardRow xs (move l [East])
     return $ (l,Just piece):np
   Right (FENSpace n) -> do
     let ray  = l:applyVector l (n - 1) [East]
-    let next = move (last ray) [East]
-    np <- createBoardRow xs next
+    let nextLocus = move (last ray) [East]
+    np <- createBoardRow xs nextLocus
     return $ map (,Nothing) ray ++ np
 
 createBoard :: [[FENSpec]] -> FenMonad [(Locus,SquareState)]
@@ -82,10 +91,18 @@ createBoard s = do
       ls = zip rows s
   concatMapM (\(rs,spec) -> createBoardRow spec $ Just rs) ls
 
+locateKing :: BoardState -> Colour -> FenMonad Locus
+locateKing b c = case filter (\i -> (b ! i) == Just (Piece c King)) $ indices b of
+  []  -> throwError $ ProcessingError $ NoKing c
+  [x] -> return x
+  _:_ -> throwError $ ProcessingError $ TooManyKings c
+
 parseFen :: String -> FenMonad GameState
 parseFen s = case parse pFen "f" s of
   Left r -> throwError $ ParseError $ errorBundlePretty r
   Right (FEN spec c) -> do
     boardInitaliser <- createBoard spec
-    let board = array boardBounds boardInitaliser
-    return $ GameState board c
+    let b = array boardBounds boardInitaliser
+    whiteKing <- locateKing b White
+    blackKing <- locateKing b Black
+    return $ GameState b c whiteKing blackKing

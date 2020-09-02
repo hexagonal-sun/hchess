@@ -8,18 +8,24 @@ import Board
 import Locus
 import Piece
 
-data GameState = GameState BoardState Colour
+data GameState = GameState
+  { board :: BoardState
+  , next  :: Colour
+  , wKing :: Locus
+  , bKing :: Locus }
   deriving (Show)
 
 createBoard :: BoardState -> Locus -> Locus -> BoardState
-createBoard board from to = board // [(from, Nothing),
-                                      (to,   board ! from)]
+createBoard b from to = b // [(from, Nothing),
+                              (to,   b ! from)]
 
 makeMove :: GameState -> Locus -> Locus -> Maybe GameState
-makeMove (GameState board nextColour) from to =
-  case board ! from of
+makeMove (GameState b nextColour wK bK) from to =
+  case b ! from of
     Nothing -> Nothing
-    Just _  -> Just $ GameState (createBoard board from to) $ switch nextColour
+    Just _  -> Just $ GameState (createBoard b from to) (switch nextColour) nwK nbK
+      where nwK = if from == wK then to else wK
+            nbK = if from == bK then to else bK
 
 newGame :: GameState
-newGame = GameState startingBoard White
+newGame = GameState startingBoard White (FE,R1) (FE,R8)

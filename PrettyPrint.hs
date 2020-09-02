@@ -66,7 +66,7 @@ instance PrettyPrint BoardState where
     putStrLn ""
 
 instance PrettyPrint GameState where
-  pp (GameState board nextColour) = do
+  pp (GameState board nextColour _ _) = do
     pp board
     putStr "Next to move: "
     print nextColour
