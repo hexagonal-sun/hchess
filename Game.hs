@@ -37,6 +37,8 @@ makeMove (GameState b nextColour wK bK cr) from@(file,_) to =
       where nwK = if from == wK then to else wK
             nbK = if from == bK then to else bK
             ncr = case k of
+              King   -> foldr (`TM.insert` False) cr rights
+                where rights = [CastlingRights side c | side <- [QueenSide,KingSide]]
               Knight -> case file  of
                 FB -> TM.insert (CastlingRights QueenSide c) False cr
                 FG -> TM.insert (CastlingRights KingSide  c) False cr
