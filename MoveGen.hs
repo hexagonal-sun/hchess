@@ -25,29 +25,29 @@ isOccupied b (Just l) = case b ! l of
   Just _ -> True
 
 kindVectors :: GameState -> Locus -> Piece -> MovementSpec
-kindVectors (GameState b _ _ _) l@(_, rank) (Piece c Pawn) = MovementSpec (y:x) n
-                                         where dir = if c == White then North else South
-                                               moveOcc = isOccupied b . move l
-                                               atHome = case (rank,c) of
-                                                 (R7,Black) -> True
-                                                 (R2,White) -> True
-                                                 _          -> False
-                                               n = case atHome of
-                                                 True -> if moveOcc [dir,dir] then 1 else 2
-                                                 _    -> 1
-                                               attackVecs = [[dir,East],[dir,West]]
-                                               x = filter moveOcc attackVecs
-                                               y = [dir | not $ moveOcc [dir]]
+kindVectors game l@(_, rank) (Piece c Pawn) = MovementSpec (y:x) n
+  where dir = if c == White then North else South
+        moveOcc = isOccupied (board game) . move l
+        atHome = case (rank,c) of
+          (R7,Black) -> True
+          (R2,White) -> True
+          _          -> False
+        n = case atHome of
+          True -> if moveOcc [dir,dir] then 1 else 2
+          _    -> 1
+        attackVecs = [[dir,East],[dir,West]]
+        x = filter moveOcc attackVecs
+        y = [dir | not $ moveOcc [dir]]
 
-kindVectors _ _       (Piece _ Knight)   = MovementSpec [[North, North, East], [North, North, West],
-                                                        [South, South, East], [South, South, West],
-                                                        [East, East, North], [East, East, South],
-                                                        [West, West, North], [West, West, South]]
-                                         1
-kindVectors _ _       (Piece _ King)     = MovementSpec (orthoVecs ++ diagVecs) 1
-kindVectors _ _       (Piece _ Rook)     = MovementSpec orthoVecs repeatEntireSpan
-kindVectors _ _       (Piece _ Bishop)   = MovementSpec diagVecs repeatEntireSpan
-kindVectors _ _       (Piece _ Queen)    = MovementSpec (orthoVecs ++ diagVecs) repeatEntireSpan
+kindVectors _ _ (Piece _ Knight)   = MovementSpec [[North, North, East], [North, North, West],
+                                                  [South, South, East], [South, South, West],
+                                                  [East, East, North], [East, East, South],
+                                                  [West, West, North], [West, West, South]]
+                                   1
+kindVectors _ _ (Piece _ King)     = MovementSpec (orthoVecs ++ diagVecs) 1
+kindVectors _ _ (Piece _ Rook)     = MovementSpec orthoVecs repeatEntireSpan
+kindVectors _ _ (Piece _ Bishop)   = MovementSpec diagVecs repeatEntireSpan
+kindVectors _ _ (Piece _ Queen)    = MovementSpec (orthoVecs ++ diagVecs) repeatEntireSpan
 
 getRays :: GameState -> Locus -> Piece -> [Ray]
 getRays g l p = case kindVectors g l p of
@@ -66,26 +66,26 @@ isRayAttacking b p (l:r)  = case b ! l of
   Just p' -> p == p'
 
 isSquareUnderAttack' :: GameState -> Locus -> Piece -> Bool
-isSquareUnderAttack' g@(GameState b _ _ _) l p = any (isRayAttacking b p) $ getRays g l p
+isSquareUnderAttack' game l p = any (isRayAttacking (board game) p) $ getRays game l p
 
 isSquareUnderAttack :: GameState -> Colour -> Locus -> Bool
 isSquareUnderAttack g c l = any (isSquareUnderAttack' g l . Piece c) allKinds
 
 isInCheck :: Colour -> GameState -> Bool
-isInCheck c g@(GameState _ _ wK bK) = isSquareUnderAttack g (switch c) kingPos
+isInCheck c g@(GameState _ _ wK bK _) = isSquareUnderAttack g (switch c) kingPos
   where kingPos = if c == White then wK else bK
 
 moveGen' :: GameState -> Locus -> [(Locus, Locus, GameState)]
-moveGen' g@(GameState b nc _ _) from = case b ! from of
+moveGen' game from = case board game ! from of
   Nothing -> []
-  Just (Piece c _) | c /= nc -> []
-  Just p@(Piece c k) -> mapMaybe (\to -> case makeMove g from to of
+  Just (Piece c _) | c /= toMove game -> []
+  Just p@(Piece c k) -> mapMaybe (\to -> case makeMove game from to of
                                      Nothing -> Nothing
                                      Just state -> Just (from, to, state)) validMoves'
-    where rays = getRays g from p
-          validMoves = concatMap (pruneRay b c) rays
-          validMoves' = if k == King then filter (not . isSquareUnderAttack g (switch c)) validMoves else validMoves
+    where rays = getRays game from p
+          validMoves = concatMap (pruneRay (board game) c) rays
+          validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
 
 moveGen :: GameState -> [(Locus, Locus, GameState)]
-moveGen game@(GameState b c _ _) = filter (\(_,_,g) -> not $ isInCheck c g) candidateMoves
-  where candidateMoves = concatMap (moveGen' game) $ indices b
+moveGen game = filter (\(_,_,g) -> not $ isInCheck (toMove g) g) candidateMoves
+  where candidateMoves = concatMap (moveGen' game) $ indices $ board game

@@ -6,6 +6,7 @@ import Data.Array
 import Data.Char
 import Data.Void
 import Text.Megaparsec hiding (State)
+import qualified Data.TotalMap as TM
 import Text.Megaparsec.Char
 import Control.Monad.Except
 import Control.Monad.Extra
@@ -105,4 +106,4 @@ parseFen s = case parse pFen "f" s of
     let b = array boardBounds boardInitaliser
     whiteKing <- locateKing b White
     blackKing <- locateKing b Black
-    return $ GameState b c whiteKing blackKing
+    return $ GameState b c whiteKing blackKing $ TM.empty True

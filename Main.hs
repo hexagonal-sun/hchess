@@ -23,4 +23,4 @@ main = do
   let g = parseFen f
   case g of
     Left err -> print err
-    Right game -> perft game 4
+    Right game -> pp game

@@ -1,18 +1,28 @@
 module Game (makeMove
+            , CastlingSide(..)
+            , CastlingRights(..)
             , GameState(..)
             , newGame
             ) where
 
 import Data.Array
+import qualified Data.TotalMap as TM
 import Board
 import Locus
 import Piece
 
+data CastlingSide = KingSide | QueenSide
+  deriving(Show,Eq,Ord)
+
+data CastlingRights = CastlingRights CastlingSide Colour
+  deriving(Show,Eq,Ord)
+
 data GameState = GameState
   { board :: BoardState
-  , next  :: Colour
+  , toMove  :: Colour
   , wKing :: Locus
-  , bKing :: Locus }
+  , bKing :: Locus
+  , castlingRights :: TM.TMap CastlingRights Bool}
   deriving (Show)
 
 createBoard :: BoardState -> Locus -> Locus -> BoardState
@@ -20,12 +30,18 @@ createBoard b from to = b // [(from, Nothing),
                               (to,   b ! from)]
 
 makeMove :: GameState -> Locus -> Locus -> Maybe GameState
-makeMove (GameState b nextColour wK bK) from to =
+makeMove (GameState b nextColour wK bK cr) from@(file,_) to =
   case b ! from of
     Nothing -> Nothing
-    Just _  -> Just $ GameState (createBoard b from to) (switch nextColour) nwK nbK
+    Just (Piece c k)  -> Just $ GameState (createBoard b from to) (switch nextColour) nwK nbK ncr
       where nwK = if from == wK then to else wK
             nbK = if from == bK then to else bK
+            ncr = case k of
+              Knight -> case file  of
+                FB -> TM.insert (CastlingRights QueenSide c) False cr
+                FG -> TM.insert (CastlingRights KingSide  c) False cr
+                _  -> cr
+              _ -> cr
 
 newGame :: GameState
-newGame = GameState startingBoard White (FE,R1) (FE,R8)
+newGame = GameState startingBoard White (FE,R1) (FE,R8) $ TM.empty True

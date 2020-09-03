@@ -13,7 +13,7 @@ allKinds :: [PieceKind]
 allKinds = [Pawn, Rook, Bishop, Knight, Queen, King]
 
 data Colour = White | Black
-  deriving(Show, Eq)
+  deriving(Show, Eq, Ord)
 
 switch :: Colour -> Colour
 switch White = Black

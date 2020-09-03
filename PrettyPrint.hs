@@ -6,6 +6,7 @@ module PrettyPrint (
 ) where
 import Data.Char
 import Data.Array
+import qualified Data.TotalMap as TM
 import Piece
 import Board
 import Locus
@@ -52,21 +53,27 @@ instance PrettyPrint SquareState where
   pp Nothing = putChar '.' >> putChar ' '
   pp (Just p) = pp p >> putChar ' '
 
+instance PrettyPrint (TM.TMap CastlingRights Bool) where
+  pp crMap = mapM_ (\cr -> putStrLn $ show cr ++ ": " ++ show (crMap TM.! cr)) rights
+    where rights = CastlingRights <$> [QueenSide,KingSide] <*> [White,Black]
+
+
 putRank :: BoardState -> Rank -> IO ()
-putRank board rank = do
+putRank b rank = do
   pp rank >> putChar ' '
   let idxes = [(f, rank) | f <- [minBound..] ::[File]]
-  mapM_ (pp . (board !)) idxes
+  mapM_ (pp . (b !)) idxes
 
 instance PrettyPrint BoardState where
-  pp board = do
-    mapM_ (\r -> putRank board r >> putStrLn "") (reverse [minBound..] :: [Rank])
+  pp b = do
+    mapM_ (\r -> putRank b r >> putStrLn "") (reverse [minBound..] :: [Rank])
     putStr "  "
     mapM_ (\f -> pp f >> putChar ' ') ([minBound..] :: [File])
     putStrLn ""
 
 instance PrettyPrint GameState where
-  pp (GameState board nextColour _ _) = do
-    pp board
+  pp g = do
+    pp $ board g
     putStr "Next to move: "
-    print nextColour
+    print $ toMove g
+    pp $ castlingRights g
