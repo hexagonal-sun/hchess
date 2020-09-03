@@ -40,16 +40,21 @@ newtype FENSpace = FENSpace Int deriving (Show)
 pSpace :: Parser FENSpace
 pSpace = oneOf ['1'..'8'] >>= (pure . FENSpace) . digitToInt <?> "space specifier"
 
+pCharColour :: Char -> Parser Colour
+pCharColour c = choice
+  [ White <$ char (toUpper c)
+  , Black <$ char c]
+
+
 pPiece :: Parser Piece
 pPiece = choice
-    [ piece Pawn   <$> charCaseClr 'p'
-    , piece Rook   <$> charCaseClr 'r'
-    , piece Knight <$> charCaseClr 'n'
-    , piece Queen  <$> charCaseClr 'q'
-    , piece King   <$> charCaseClr 'k'
-    , piece Bishop <$> charCaseClr 'b'] <?> "piece specifier"
+    [ piece Pawn   <$> pCharColour 'p'
+    , piece Rook   <$> pCharColour 'r'
+    , piece Knight <$> pCharColour 'n'
+    , piece Queen  <$> pCharColour 'q'
+    , piece King   <$> pCharColour 'k'
+    , piece Bishop <$> pCharColour 'b'] <?> "piece specifier"
   where
-    charCaseClr c = (char (toUpper c) >> return White) <|> (char c >> return Black) :: Parser Colour
     piece = flip Piece
 
 type FENSpec = Either Piece FENSpace
@@ -64,12 +69,25 @@ pColour = choice
   [ White <$ char 'w'
   , Black <$ char 'b']
 
-data FEN = FEN [[FENSpec]] Colour
+pCastlingRight :: Parser CastlingRights
+pCastlingRight = choice
+  [ CastlingRights KingSide  <$> pCharColour 'k'
+  , CastlingRights QueenSide <$> pCharColour 'q']
+
+pCastlingRights :: Parser [CastlingRights]
+pCastlingRights = choice
+  [ [] <$ char '-'
+  , some pCastlingRight ]
+
+data FEN = FEN [[FENSpec]] Colour [CastlingRights]
+
 pFen :: Parser FEN
 pFen = do
   b <- pBoard
   space
-  FEN b <$> pColour
+  c <- pColour
+  space
+  FEN b c <$> pCastlingRights
 
 createBoardRow :: [FENSpec] -> Maybe Locus ->  FenMonad [(Locus,SquareState)]
 createBoardRow []      Nothing      = return []
@@ -98,12 +116,16 @@ locateKing b c = case filter (\i -> (b ! i) == Just (Piece c King)) $ indices b 
   [x] -> return x
   _:_ -> throwError $ ProcessingError $ TooManyKings c
 
+createRights :: [CastlingRights] -> TM.TMap CastlingRights Bool
+createRights []     = TM.empty False
+createRights (r:rs) = TM.insert r True  $ createRights rs
+
 parseFen :: String -> FenMonad GameState
 parseFen s = case parse pFen "f" s of
   Left r -> throwError $ ParseError $ errorBundlePretty r
-  Right (FEN spec c) -> do
+  Right (FEN spec c cr) -> do
     boardInitaliser <- createBoard spec
     let b = array boardBounds boardInitaliser
     whiteKing <- locateKing b White
     blackKing <- locateKing b Black
-    return $ GameState b c whiteKing blackKing $ TM.empty True
+    return $ GameState b c whiteKing blackKing $ createRights cr
