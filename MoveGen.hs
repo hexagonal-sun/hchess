@@ -3,6 +3,7 @@ module MoveGen (
 ) where
 
 import Data.Maybe
+import qualified Data.TotalMap as TM
 import Data.Array
 import Board
 import Game
@@ -75,6 +76,24 @@ isInCheck :: Colour -> GameState -> Bool
 isInCheck c g@(GameState _ _ wK bK _) = isSquareUnderAttack g (switch c) kingPos
   where kingPos = if c == White then wK else bK
 
+genCastlingMoves' :: GameState -> CastlingRights -> Maybe Locus
+genCastlingMoves' game (CastlingRights side colour) =
+  let dir      = if side == QueenSide then West else East
+      obsRaySz = if side == QueenSide then 3 else 2
+      rank     = if colour == White then R1 else R8
+      from     = (FE,rank)
+      obsRay   = applyVector from obsRaySz [dir]
+      isOcc    = any (isOccupied (board game) . Just) obsRay
+      checkRay = applyVector from 2 [dir]
+      to       = last checkRay
+      isCheck  = any (isSquareUnderAttack game (switch $ toMove game)) checkRay
+  in if isOcc || isCheck then Nothing else Just to
+
+genCastlingMoves :: GameState -> [Locus]
+genCastlingMoves game = mapMaybe (\cr -> if castlingRights game TM.! cr
+                                   then genCastlingMoves' game cr
+                                   else Nothing) $ [CastlingRights side (toMove game) | side <- [QueenSide,KingSide]]
+
 moveGen' :: GameState -> Locus -> [(Locus, Locus, GameState)]
 moveGen' game from = case board game ! from of
   Nothing -> []
@@ -83,7 +102,7 @@ moveGen' game from = case board game ! from of
                                      Nothing -> Nothing
                                      Just state -> Just (from, to, state)) validMoves'
     where rays = getRays game from p
-          validMoves = concatMap (pruneRay (board game) c) rays
+          validMoves = concatMap (pruneRay (board game) c) rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
 
 moveGen :: GameState -> [(Locus, Locus, GameState)]
