@@ -36,14 +36,17 @@ instance PrettyPrint Rank where
 
 instance PrettyPrint File where
   pp x = putChar $ case x of
-    FA-> 'A'
-    FB-> 'B'
-    FC-> 'C'
-    FD-> 'D'
-    FE-> 'E'
-    FF-> 'F'
-    FG-> 'G'
-    FH-> 'H'
+    FA-> 'a'
+    FB-> 'b'
+    FC-> 'c'
+    FD-> 'd'
+    FE-> 'e'
+    FF-> 'f'
+    FG-> 'g'
+    FH-> 'h'
+
+instance PrettyPrint Locus where
+  pp (file,rank) = pp file >> pp rank
  
 instance PrettyPrint Piece where
   pp (Piece White k) = putChar $ toUpper $ getPieceKindChar k

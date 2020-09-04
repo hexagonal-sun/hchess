@@ -13,14 +13,12 @@ perft :: GameState -> Int -> IO ()
 perft state n = do
   let states = moveGen state
   let perfts = map (\(f, t, s) -> (f,t, perft' (n - 1) s)) states
-  mapM_ print perfts
+  mapM_ (\(from,to,num) -> pp from >> pp to >> putStr ": " >> print num) perfts
   let total = foldl (\x (_,_,p) -> x + p) 0 perfts
   putStrLn $ "Perft " ++ show n ++ " total: " ++ show total
 
 main :: IO ()
 main = do
-  f <- getLine
-  let g = parseFen f
-  case g of
-    Left err -> print err
-    Right game -> pp game
+  let g = newGame
+  pp g
+  perft g 5
