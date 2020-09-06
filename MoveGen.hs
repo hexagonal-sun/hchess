@@ -106,5 +106,5 @@ moveGen' game from = case board game ! from of
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
 
 moveGen :: GameState -> [(Locus, Locus, GameState)]
-moveGen game = filter (\(_,_,g) -> not $ isInCheck (toMove g) g) candidateMoves
+moveGen game = filter (\(_,_,g) -> not $ isInCheck (toMove game) g) candidateMoves
   where candidateMoves = concatMap (moveGen' game) $ indices $ board game
