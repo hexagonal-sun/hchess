@@ -14,6 +14,7 @@ import Piece
 import Board
 import Locus
 import Game
+import qualified EnPassant as EP
 
 data FenProcessingError = RowTooShort Rank
               | RowTooLong
@@ -128,4 +129,4 @@ parseFen s = case parse pFen "f" s of
     let b = array boardBounds boardInitaliser
     whiteKing <- locateKing b White
     blackKing <- locateKing b Black
-    return $ GameState b c whiteKing blackKing $ createRights cr
+    return $ GameState b c whiteKing blackKing EP.defaultState $ createRights cr

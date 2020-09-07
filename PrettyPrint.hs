@@ -5,6 +5,7 @@ module PrettyPrint (
   pp
 ) where
 import Data.Char
+import qualified EnPassant as EP
 import Data.Array
 import qualified Data.TotalMap as TM
 import Piece
@@ -67,6 +68,11 @@ putRank b rank = do
   let idxes = [(f, rank) | f <- [minBound..] ::[File]]
   mapM_ (pp . (b !)) idxes
 
+instance PrettyPrint EP.EnPassant where
+  pp (EP.EnPassant Nothing) = putChar '-'
+  pp (EP.EnPassant (Just (file,c))) = pp file >> pp rank
+    where rank = if c == White then R3 else R6
+
 instance PrettyPrint BoardState where
   pp b = do
     mapM_ (\r -> putRank b r >> putStrLn "") (reverse [minBound..] :: [Rank])
@@ -80,3 +86,6 @@ instance PrettyPrint GameState where
     putStr "Next to move: "
     print $ toMove g
     pp $ castlingRights g
+    putStr "EnPassant Locus: "
+    pp $ enPassant g
+    putStrLn ""

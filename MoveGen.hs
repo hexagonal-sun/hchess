@@ -73,8 +73,8 @@ isSquareUnderAttack :: GameState -> Colour -> Locus -> Bool
 isSquareUnderAttack g c l = any (isSquareUnderAttack' g l . Piece c) allKinds
 
 isInCheck :: Colour -> GameState -> Bool
-isInCheck c g@(GameState _ _ wK bK _) = isSquareUnderAttack g (switch c) kingPos
-  where kingPos = if c == White then wK else bK
+isInCheck c game = isSquareUnderAttack game (switch c) kingPos
+  where kingPos = if c == White then wKing game else bKing game
 
 genCastlingMoves' :: GameState -> CastlingRights -> Maybe Locus
 genCastlingMoves' game (CastlingRights side colour) =

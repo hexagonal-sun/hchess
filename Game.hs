@@ -7,6 +7,7 @@ module Game (makeMove
 
 import Data.Array
 import qualified Data.TotalMap as TM
+import qualified EnPassant as EP
 import Board
 import Locus
 import Piece
@@ -22,29 +23,31 @@ data GameState = GameState
   , toMove  :: Colour
   , wKing :: Locus
   , bKing :: Locus
-  , enPassant :: Maybe Locus
+  , enPassant :: EP.EnPassant
   , castlingRights :: TM.TMap CastlingRights Bool}
-  deriving (Show)
 
 createBoard :: BoardState -> Locus -> Locus -> BoardState
 createBoard b from to = b // [(from, Nothing),
                               (to,   b ! from)]
 
-makeMove' :: BoardState -> PieceKind -> Locus -> Locus -> BoardState
-makeMove' b piece from@(ff,fr) to@(tf,_) = foldr (\(f,t) b' -> createBoard b' f t) b moves
+makeMove' :: GameState -> PieceKind -> Locus -> Locus -> BoardState
+makeMove' game piece from@(ff,fr) to@(tf,_) = foldr (\(f,t) b' -> createBoard b' f t) (board game) moves
   where m = [(from,to)]
+        m' =  case EP.captureLoc (enPassant game) to of
+          Nothing -> m
+          Just capturedPawn -> (from,capturedPawn):m
         moves = case piece of
           King -> case (ff,tf) of
-            (FE,FG) -> ((FH,fr),(FF,fr)):m
-            (FE,FC) -> ((FA,fr),(FD,fr)):m
+            (FE,FG) -> ((FH,fr),(FF,fr)):m'
+            (FE,FC) -> ((FA,fr),(FD,fr)):m'
             _ -> m
           _ -> m
 
 makeMove :: GameState -> Locus -> Locus -> Maybe GameState
-makeMove (GameState b nextColour wK bK cr) from@(file,_) to =
+makeMove g@(GameState b nextColour wK bK _ cr) from@(file,_) to =
   case b ! from of
     Nothing -> Nothing
-    Just (Piece c k)  -> Just $ GameState (makeMove' b k from to) (switch nextColour) nwK nbK ncr
+    Just (Piece c k)  -> Just $ GameState (makeMove' g k from to) (switch nextColour) nwK nbK (EP.update k from to) ncr
       where nwK = if from == wK then to else wK
             nbK = if from == bK then to else bK
             ncr = case k of
@@ -57,4 +60,4 @@ makeMove (GameState b nextColour wK bK cr) from@(file,_) to =
               _ -> cr
 
 newGame :: GameState
-newGame = GameState startingBoard White (FE,R1) (FE,R8) $ TM.empty True
+newGame = GameState startingBoard White (FE,R1) (FE,R8) EP.defaultState $ TM.empty True
