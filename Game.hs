@@ -22,6 +22,7 @@ data GameState = GameState
   , toMove  :: Colour
   , wKing :: Locus
   , bKing :: Locus
+  , enPassant :: Maybe Locus
   , castlingRights :: TM.TMap CastlingRights Bool}
   deriving (Show)
 
