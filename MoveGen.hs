@@ -4,6 +4,7 @@ module MoveGen (
 
 import Data.Maybe
 import qualified Data.TotalMap as TM
+import qualified EnPassant as EP
 import Data.Array
 import Board
 import Game
@@ -25,10 +26,19 @@ isOccupied b (Just l) = case b ! l of
   Nothing -> False
   Just _ -> True
 
+canAttack :: GameState -> Colour -> Maybe Locus -> Bool
+canAttack _ _ Nothing = False
+canAttack game c (Just l) = attackP || attackEP
+  where attackEP = EP.isEPLocus (enPassant game) l
+        attackP  = case (board game) ! l of
+          Nothing -> False
+          Just (Piece pC _) -> pC == switch c
+
 kindVectors :: GameState -> Locus -> Piece -> MovementSpec
 kindVectors game l@(_, rank) (Piece c Pawn) = MovementSpec (y:x) n
   where dir = if c == White then North else South
         moveOcc = isOccupied (board game) . move l
+        moveAtt = canAttack game c . move l
         atHome = case (rank,c) of
           (R7,Black) -> True
           (R2,White) -> True
@@ -37,7 +47,7 @@ kindVectors game l@(_, rank) (Piece c Pawn) = MovementSpec (y:x) n
           True -> if moveOcc [dir,dir] then 1 else 2
           _    -> 1
         attackVecs = [[dir,East],[dir,West]]
-        x = filter moveOcc attackVecs
+        x = filter moveAtt attackVecs
         y = [dir | not $ moveOcc [dir]]
 
 kindVectors _ _ (Piece _ Knight)   = MovementSpec [[North, North, East], [North, North, West],
