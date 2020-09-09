@@ -1,6 +1,7 @@
 module EnPassant
   (EnPassant(..),
    defaultState,
+   isEPLocus,
    update,
    captureLoc) where
 
