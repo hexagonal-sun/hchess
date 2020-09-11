@@ -16,11 +16,40 @@ maintainer:          matthew@mattleach.net
 build-type:          Simple
 extra-source-files:  CHANGELOG.md
 
+Library
+  Exposed-Modules:    Perft
+                    , PrettyPrint
+                    , Fen
+
+  other-modules:      Locus
+                    , Board
+                    , Piece
+                    , Game
+                    , MoveGen
+                    , EnPassant
+
+  build-depends:      array
+                    , base >=4.13 && <4.14
+                    , binary
+                    , bytestring
+                    , extra
+                    , megaparsec
+                    , mtl
+                    , total-map
+
 executable hchess
-  main-is:             Main.hs
-  other-modules:       Locus, Board, Piece, PrettyPrint, MoveGen, Game, Fen, Perft, EnPassant
-  -- other-extensions:
-  build-depends:       array, base >=4.13 && <4.14, binary, bytestring, extra, megaparsec, mtl, total-map
-  -- hs-source-dirs:
-  GHC-Options:         -Wall
-  default-language:    Haskell2010
+  main-is:            Main.hs
+  GHC-Options:        -Wall
+  default-language:   Haskell2010
+  build-depends:      hchess
+
+Test-Suite test-hchess
+  type:               exitcode-stdio-1.0
+  GHC-Options:        -Wall
+  hs-source-dirs:     tests
+  default-language:   Haskell2010
+  main-is:            Tests.hs
+  build-depends:      base
+                    , tasty
+                    , tasty-hunit
+                    , hchess
