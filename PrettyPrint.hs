@@ -12,6 +12,7 @@ import Piece
 import Board
 import Locus
 import Game
+import Move
 
 class PrettyPrint a where
   pp :: a -> IO ()
@@ -89,3 +90,8 @@ instance PrettyPrint GameState where
     putStr "EnPassant Locus: "
     pp $ enPassant g
     putStrLn ""
+
+instance PrettyPrint Move where
+  pp (Move from to promo) = do
+    pp from
+    pp to

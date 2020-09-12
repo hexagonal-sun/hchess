@@ -10,14 +10,15 @@ import Board
 import Game
 import Locus
 import Piece
+import Move
 
 data RaySpec = RaySpec [Vector] Int
 
 data MovementSpec = DifferingAttack RaySpec RaySpec |
                     ConsistentAttack RaySpec
 
-data CandidateMoves = Attack      [Ray] |
-                      Move        [Ray] |
+data CandidateMoves = AttackOnly  [Ray] |
+                      MoveOnly    [Ray] |
                       AttackMove  [Ray]
 
 orthoVecs :: [Vector]
@@ -57,8 +58,8 @@ getRays :: Locus -> Piece -> [CandidateMoves]
 getRays l p = case kindVectors l p of
   ConsistentAttack (RaySpec vecs repeatVec) -> [AttackMove $ map (applyVector l repeatVec) vecs]
   DifferingAttack (RaySpec mVecs mRepeatVec) (RaySpec aVecs aRepeatVec) ->
-    [Attack $ map(applyVector l aRepeatVec) aVecs,
-     Move   $ map(applyVector l mRepeatVec) mVecs]
+    [AttackOnly $ map(applyVector l aRepeatVec) aVecs,
+     MoveOnly   $ map(applyVector l mRepeatVec) mVecs]
 
 canAttack :: GameState -> Colour -> Locus -> Bool
 canAttack game c l = EP.isEPLocus (enPassant game) l || attackablePiece
@@ -86,8 +87,8 @@ pruneAttackMoveRay game c (l:ls) = case board game ! l of
 
 pruneMoves :: GameState -> Colour -> [CandidateMoves] -> Ray
 pruneMoves game c = concatMap (\cm -> case cm of
-  (Attack rays)     -> concatMap (pruneAttackRay game c) rays
-  (Move rays)       -> concatMap (pruneMoveRay game) rays
+  (AttackOnly rays) -> concatMap (pruneAttackRay game c) rays
+  (MoveOnly rays)   -> concatMap (pruneMoveRay game) rays
   (AttackMove rays) -> concatMap (pruneAttackMoveRay game c) rays)
 
 isRayAttacking' :: BoardState -> Piece -> Ray -> Bool
@@ -97,8 +98,8 @@ isRayAttacking' b p@(Piece c k) (l:r) = case b ! l of
   Just (Piece c' k') ->  c' == switch c && k' == k
 
 isRayAttacking :: BoardState -> Piece -> CandidateMoves -> Bool
-isRayAttacking _ _ (Move _)          = False
-isRayAttacking b p (Attack rays)     = any (isRayAttacking' b p) rays
+isRayAttacking _ _ (MoveOnly _)      = False
+isRayAttacking b p (AttackOnly rays) = any (isRayAttacking' b p) rays
 isRayAttacking b p (AttackMove rays) = any (isRayAttacking' b p) rays
 
 isSquareUnderAttack' :: GameState -> Locus -> Piece -> Bool
@@ -129,17 +130,19 @@ genCastlingMoves game = mapMaybe (\cr -> if castlingRights game TM.! cr
                                    then genCastlingMoves' game cr
                                    else Nothing) $ [CastlingRights side (toMove game) | side <- [QueenSide,KingSide]]
 
-moveGen' :: GameState -> Locus -> [(Locus, Locus, GameState)]
+
+moveGen' :: GameState -> Locus -> [(Move, GameState)]
 moveGen' game from = case board game ! from of
   Nothing -> []
   Just (Piece c _) | c /= toMove game -> []
-  Just p@(Piece c k) -> mapMaybe (\to -> case makeMove game from to of
+  Just p@(Piece c k) -> mapMaybe (\move -> case makeMove game move of
                                      Nothing -> Nothing
-                                     Just state -> Just (from, to, state)) validMoves'
+                                     Just state -> Just (move, state)) moves
     where rays = getRays from p
           validMoves = pruneMoves game c rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
+          moves = map (\to -> Move from to Nothing) validMoves'
 
-moveGen :: GameState -> [(Locus, Locus, GameState)]
-moveGen game = filter (\(_,_,g) -> not $ isInCheck (toMove game) g) candidateMoves
+moveGen :: GameState -> [(Move, GameState)]
+moveGen game = filter (\(_,g) -> not $ isInCheck (toMove game) g) candidateMoves
   where candidateMoves = concatMap (moveGen' game) $ indices $ board game

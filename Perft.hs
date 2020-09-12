@@ -8,13 +8,13 @@ import PrettyPrint
 import MoveGen
 import Fen
 import Locus
+import Move
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import Data.Void
 import System.IO
 
 type Parser = Parsec Void String
-type Move   = (Locus,Locus)
 
 pRank :: Parser Rank
 pRank = choice
@@ -48,18 +48,18 @@ pMove :: Parser Move
 pMove = do
   from <- pLocus
   to   <- pLocus
-  return (from,to)
+  return $ Move from to Nothing
 
 perftInt :: Int -> GameState -> Int
 perftInt 0 _  = 1
-perftInt n state = sum $ map (\(_,_,s) -> perftInt (n - 1) s) $ moveGen state
+perftInt n state = sum $ map (\(_,s) -> perftInt (n - 1) s) $ moveGen state
 
 perft :: GameState -> Int -> IO ()
 perft state n = do
   let states = moveGen state
-  let perfts = map (\(f, t, s) -> (f,t, perftInt (n - 1) s)) states
-  mapM_ (\(from,to,num) -> pp from >> pp to >> putStr ": " >> print num) perfts
-  let total = foldl (\x (_,_,p) -> x + p) 0 perfts
+  let perfts = map (\(move, s) -> (move, perftInt (n - 1) s)) states
+  mapM_ (\(move,num) -> pp move >> putStr ": " >> print num) perfts
+  let total = foldl (\x (_,p) -> x + p) 0 perfts
   putStrLn $ "Perft " ++ show n ++ " total: " ++ show total
 
 prompt :: String -> IO String
@@ -76,7 +76,7 @@ readMove game = do
       putStr "Could not parse move: "
       putStrLn $ errorBundlePretty bundle
       readMove game
-    Right (from,to) -> case makeMove game from to of
+    Right move -> case makeMove game move of
       Nothing -> do
         putStrLn $ "Error: " ++ moveStr ++ " is invalid."
         readMove game

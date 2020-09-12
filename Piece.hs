@@ -9,8 +9,11 @@ module Piece (
 data PieceKind = Pawn | Rook | Bishop | Knight | Queen | King
   deriving(Eq, Show)
 
+promotionKinds :: [PieceKind]
+promotionKinds = [Rook, Bishop, Knight, Queen, King]
+
 allKinds :: [PieceKind]
-allKinds = [Pawn, Rook, Bishop, Knight, Queen, King]
+allKinds = Pawn:promotionKinds
 
 data Colour = White | Black
   deriving(Show, Eq, Ord)

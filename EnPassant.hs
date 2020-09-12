@@ -7,6 +7,7 @@ module EnPassant
 
 import Locus
 import Piece
+import Move
 
 newtype EnPassant = EnPassant (Maybe (File,Colour))
 
@@ -14,10 +15,10 @@ defaultState :: EnPassant
 defaultState = EnPassant Nothing
 
 -- Given a move, update the EP state.
-update :: PieceKind -> Locus -> Locus -> EnPassant
-update Pawn (ff,fr) (_,tr) | fr == R7 && tr == R5 = EnPassant $ Just (ff,Black)
-                           | fr == R2 && tr == R4 = EnPassant $ Just (ff,White)
-update _ _ _ = EnPassant Nothing
+update :: PieceKind -> Move -> EnPassant
+update Pawn (Move (ff,fr) (_,tr) _) | fr == R7 && tr == R5 = EnPassant $ Just (ff,Black)
+                                    | fr == R2 && tr == R4 = EnPassant $ Just (ff,White)
+update _ _ = EnPassant Nothing
 
 isEPLocus :: EnPassant -> Locus -> Bool
 isEPLocus (EnPassant Nothing) _ = False
