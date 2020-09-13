@@ -130,6 +130,9 @@ genCastlingMoves game = mapMaybe (\cr -> if castlingRights game TM.! cr
                                    then genCastlingMoves' game cr
                                    else Nothing) $ [CastlingRights side (toMove game) | side <- [QueenSide,KingSide]]
 
+genPromotions :: Locus -> Locus -> Piece -> [Move]
+genPromotions from to@(_, rank) (Piece c Pawn) | rank == R1 || rank == R8 = map (\pp -> Move from to (Just $ Piece c pp)) promotionKinds
+genPromotions from to _ = [Move from to Nothing]
 
 moveGen' :: GameState -> Locus -> [(Move, GameState)]
 moveGen' game from = case board game ! from of
@@ -141,7 +144,7 @@ moveGen' game from = case board game ! from of
     where rays = getRays from p
           validMoves = pruneMoves game c rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
-          moves = map (\to -> Move from to Nothing) validMoves'
+          moves = concatMap (\to -> genPromotions from to p) validMoves'
 
 moveGen :: GameState -> [(Move, GameState)]
 moveGen game = filter (\(_,g) -> not $ isInCheck (toMove game) g) candidateMoves
