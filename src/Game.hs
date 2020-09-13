@@ -28,6 +28,8 @@ data GameState = GameState
   , castlingRights :: TM.TMap CastlingRights Bool}
 
 updateBoard :: Move -> BoardState -> BoardState
+updateBoard m@(Move _ _ (Just p)) b = b // [(from m, Nothing),
+                                            (to   m, Just p)]
 updateBoard m b = b // [(from m, Nothing),
                         (to   m, b ! from m)]
 
