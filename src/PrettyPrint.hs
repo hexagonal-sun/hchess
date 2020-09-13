@@ -95,3 +95,6 @@ instance PrettyPrint Move where
   pp (Move from to promo) = do
     pp from
     pp to
+    case promo of
+      Just (Piece c k) -> putChar $ getPieceKindChar k
+      Nothing -> return ()
