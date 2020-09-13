@@ -126,9 +126,10 @@ genCastlingMoves' game (CastlingRights side colour) =
   in if isOcc || isCheck then Nothing else Just to
 
 genCastlingMoves :: GameState -> [Locus]
-genCastlingMoves game = mapMaybe (\cr -> if castlingRights game TM.! cr
-                                   then genCastlingMoves' game cr
-                                   else Nothing) $ [CastlingRights side (toMove game) | side <- [QueenSide,KingSide]]
+genCastlingMoves game | isInCheck (toMove game) game = []
+                      | otherwise = mapMaybe (\cr -> if castlingRights game TM.! cr
+                                               then genCastlingMoves' game cr
+                                               else Nothing) $ [CastlingRights side (toMove game) | side <- [QueenSide,KingSide]]
 
 genPromotions :: Locus -> Locus -> Piece -> [Move]
 genPromotions from to@(_, rank) (Piece c Pawn) | rank == R1 || rank == R8 = map (\pp -> Move from to (Just $ Piece c pp)) promotionKinds
