@@ -24,9 +24,10 @@ type CastlingRights = TM.TMap CastlingRight Bool
 
 updateCastlingRightsCapture :: BoardState -> Move -> [CastlingRight]
 updateCastlingRightsCapture board move = case board ! to move of
-  Just (Piece c Rook) | file == FA -> [CastlingRight QueenSide c]
-                      | file == FH -> [CastlingRight KingSide  c]
+  Just (Piece c Rook) | (file, rank) == to move -> [CastlingRight QueenSide c]
+                      | (file, rank) == to move -> [CastlingRight KingSide  c]
     where file = fst $ to move
+          rank = if c == White then R1 else R8
   _ -> []
 
 updateCastlingRightsMove :: BoardState -> Move -> [CastlingRight]
