@@ -9,6 +9,7 @@ module CastlingRights (
 
 import qualified Data.TotalMap as TM
 import Data.Array
+import Data.Maybe
 import Board
 import Piece
 import Move
@@ -22,13 +23,25 @@ data CastlingRight = CastlingRight CastlingSide Colour
 
 type CastlingRights = TM.TMap CastlingRight Bool
 
+csFromFile :: File -> Maybe CastlingSide
+csFromFile file = case file of
+  FA -> Just QueenSide
+  FH -> Just KingSide
+  _  -> Nothing
+
+ccFromRank :: Rank -> Maybe Colour
+ccFromRank rank = case rank of
+  R1 -> Just White
+  R8 -> Just Black
+  _  -> Nothing
+
+crFromLocus :: Locus -> Maybe CastlingRight
+crFromLocus (file, rank) = CastlingRight <$> csFromFile file <*> ccFromRank rank
+
 updateCastlingRightsCapture :: BoardState -> Move -> [CastlingRight]
 updateCastlingRightsCapture board move = case board ! to move of
-  Just (Piece c Rook) | (file, rank) == to move -> [CastlingRight QueenSide c]
-                      | (file, rank) == to move -> [CastlingRight KingSide  c]
-    where file = fst $ to move
-          rank = if c == White then R1 else R8
-  _ -> []
+  Just (Piece c Rook) -> mapMaybe crFromLocus [to move]
+  _                   -> []
 
 updateCastlingRightsMove :: BoardState -> Move -> [CastlingRight]
 updateCastlingRightsMove board move = case board ! from move of
