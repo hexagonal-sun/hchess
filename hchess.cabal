@@ -30,6 +30,7 @@ Library
                     , MoveGen
                     , EnPassant
                     , Move
+                    , CastlingRights
 
   build-depends:      array
                     , base >=4.13 && <4.14

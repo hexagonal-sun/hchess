@@ -6,6 +6,7 @@ module PrettyPrint (
 ) where
 import Data.Char
 import qualified EnPassant as EP
+import qualified CastlingRights as CR
 import Data.Array
 import qualified Data.TotalMap as TM
 import Piece
@@ -58,9 +59,9 @@ instance PrettyPrint SquareState where
   pp Nothing = putChar '.' >> putChar ' '
   pp (Just p) = pp p >> putChar ' '
 
-instance PrettyPrint (TM.TMap CastlingRights Bool) where
+instance PrettyPrint (TM.TMap CR.CastlingRight Bool) where
   pp crMap = mapM_ (\cr -> putStrLn $ show cr ++ ": " ++ show (crMap TM.! cr)) rights
-    where rights = CastlingRights <$> [QueenSide,KingSide] <*> [White,Black]
+    where rights = CR.CastlingRight <$> [CR.QueenSide,CR.KingSide] <*> [White,Black]
 
 
 putRank :: BoardState -> Rank -> IO ()

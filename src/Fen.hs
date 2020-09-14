@@ -7,6 +7,7 @@ import Data.Char
 import Data.Void
 import Text.Megaparsec hiding (State)
 import qualified Data.TotalMap as TM
+import qualified CastlingRights as CR
 import Text.Megaparsec.Char
 import Control.Monad.Except
 import Control.Monad.Extra
@@ -70,17 +71,17 @@ pColour = choice
   [ White <$ char 'w'
   , Black <$ char 'b']
 
-pCastlingRight :: Parser CastlingRights
+pCastlingRight :: Parser CR.CastlingRight
 pCastlingRight = choice
-  [ CastlingRights KingSide  <$> pCharColour 'k'
-  , CastlingRights QueenSide <$> pCharColour 'q']
+  [ CR.CastlingRight CR.KingSide  <$> pCharColour 'k'
+  , CR.CastlingRight CR.QueenSide <$> pCharColour 'q']
 
-pCastlingRights :: Parser [CastlingRights]
+pCastlingRights :: Parser [CR.CastlingRight]
 pCastlingRights = choice
   [ [] <$ char '-'
   , some pCastlingRight ]
 
-data FEN = FEN [[FENSpec]] Colour [CastlingRights]
+data FEN = FEN [[FENSpec]] Colour [CR.CastlingRight]
 
 pFen :: Parser FEN
 pFen = do
@@ -117,10 +118,6 @@ locateKing b c = case filter (\i -> (b ! i) == Just (Piece c King)) $ indices b 
   [x] -> return x
   _:_ -> throwError $ ProcessingError $ TooManyKings c
 
-createRights :: [CastlingRights] -> TM.TMap CastlingRights Bool
-createRights []     = TM.empty False
-createRights (r:rs) = TM.insert r True  $ createRights rs
-
 parseFen :: String -> FenMonad GameState
 parseFen s = case parse pFen "f" s of
   Left r -> throwError $ ParseError $ errorBundlePretty r
@@ -129,4 +126,4 @@ parseFen s = case parse pFen "f" s of
     let b = array boardBounds boardInitaliser
     whiteKing <- locateKing b White
     blackKing <- locateKing b Black
-    return $ GameState b c whiteKing blackKing EP.defaultState $ createRights cr
+    return $ GameState b c whiteKing blackKing EP.defaultState $ CR.create cr

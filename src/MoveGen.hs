@@ -5,6 +5,7 @@ module MoveGen (
 import Data.Maybe
 import qualified Data.TotalMap as TM
 import qualified EnPassant as EP
+import qualified CastlingRights as CR
 import Data.Array
 import Board
 import Game
@@ -112,10 +113,10 @@ isInCheck :: Colour -> GameState -> Bool
 isInCheck c game = isSquareUnderAttack game (switch c) kingPos
   where kingPos = if c == White then wKing game else bKing game
 
-genCastlingMoves' :: GameState -> CastlingRights -> Maybe Locus
-genCastlingMoves' game (CastlingRights side colour) =
-  let dir      = if side == QueenSide then West else East
-      obsRaySz = if side == QueenSide then 3 else 2
+genCastlingMoves' :: GameState -> CR.CastlingRight -> Maybe Locus
+genCastlingMoves' game (CR.CastlingRight side colour) =
+  let dir      = if side == CR.QueenSide then West else East
+      obsRaySz = if side == CR.QueenSide then 3 else 2
       rank     = if colour == White then R1 else R8
       from     = (FE,rank)
       obsRay   = applyVector from obsRaySz [dir]
@@ -129,7 +130,7 @@ genCastlingMoves :: GameState -> [Locus]
 genCastlingMoves game | isInCheck (toMove game) game = []
                       | otherwise = mapMaybe (\cr -> if castlingRights game TM.! cr
                                                then genCastlingMoves' game cr
-                                               else Nothing) $ [CastlingRights side (toMove game) | side <- [QueenSide,KingSide]]
+                                               else Nothing) $ [CR.CastlingRight side (toMove game) | side <- [CR.QueenSide,CR.KingSide]]
 
 genPromotions :: Locus -> Locus -> Piece -> [Move]
 genPromotions from to@(_, rank) (Piece c Pawn) | rank == R1 || rank == R8 = map (\pp -> Move from to (Just $ Piece c pp)) promotionKinds
