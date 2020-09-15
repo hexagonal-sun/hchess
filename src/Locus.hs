@@ -2,7 +2,14 @@ module Locus (
   File(..),
   Rank(..),
   Locus,
-  Direction(..),
+  locToRank,
+  locToFile,
+  locToFR,
+  frToLoc,
+  north,
+  east,
+  south,
+  west,
   Vector,
   applyVector,
   Ray,
@@ -10,37 +17,50 @@ module Locus (
   repeatEntireSpan
 ) where
 
-import Data.Ix
 import Control.Monad
 import Data.Maybe
+import Data.Word
+import Data.Bits
+import Data.Int
 
 data File = FA | FB | FC | FD | FE | FF | FG | FH
-  deriving(Eq, Ord, Ix, Bounded, Enum, Show)
+  deriving(Eq, Ord, Bounded, Enum, Show)
 
 data Rank = R1 | R2 | R3 | R4 | R5 | R6 | R7 | R8
-  deriving(Eq, Ord, Ix, Bounded, Enum, Show)
+  deriving(Eq, Ord, Bounded, Enum, Show)
 
-type Locus = (File, Rank)
- 
-data Direction = North | East | South | West
-  deriving(Eq, Show)
+type Locus = Word8
+type Vector = Int8
 
-type Vector = [Direction]
+locToFile :: Locus -> File
+locToFile l = toEnum $ fromIntegral $ l .&. 7
+
+locToRank :: Locus -> Rank
+locToRank l = toEnum $ fromIntegral $ l `shiftR` 4
+
+locToFR :: Locus -> (File, Rank)
+locToFR l = (locToFile l, locToRank l)
+
+frToLoc :: (File, Rank) -> Locus
+frToLoc (file, rank) = fromIntegral $ (16 * fromEnum rank) + fromEnum file
+
+north :: Vector
+north = 0x10
+
+south :: Vector
+south = -0x10
+
+east :: Vector
+east = 0x1
+
+west :: Vector
+west = -0x1
+
 type Ray = [Locus]
 
-move' :: Locus -> Direction -> Maybe Locus
-move' (file, rank) direction
-  | direction == North && rank == (maxBound :: Rank) = Nothing
-  | direction == South && rank == (minBound :: Rank) = Nothing
-  | direction == East  && file == (maxBound :: File) = Nothing
-  | direction == West  && file == (minBound :: File) = Nothing
-move' (file, rank) North = Just (file, succ rank)
-move' (file, rank) East  = Just (succ file, rank)
-move' (file, rank) South = Just (file, pred rank)
-move' (file, rank) West  = Just (pred file, rank)
-
 move :: Locus -> Vector -> Maybe Locus
-move = foldM move'
+move l dir = if nLoc .&. 0x88 /= 0 then Nothing else Just nLoc
+  where nLoc = l + fromIntegral dir
 
 applyVector' :: Maybe Locus -> Int -> Vector -> [Maybe Locus]
 applyVector' _ 0 _ = []

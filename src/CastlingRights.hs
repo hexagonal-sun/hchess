@@ -36,7 +36,8 @@ ccFromRank rank = case rank of
   _  -> Nothing
 
 crFromLocus :: Locus -> Maybe CastlingRight
-crFromLocus (file, rank) = CastlingRight <$> csFromFile file <*> ccFromRank rank
+crFromLocus l = case locToFR l of
+  (file, rank) -> CastlingRight <$> csFromFile file <*> ccFromRank rank
 
 updateCastlingRightsCapture :: BoardState -> Move -> [CastlingRight]
 updateCastlingRightsCapture board move = case board ! to move of
@@ -46,7 +47,7 @@ updateCastlingRightsCapture board move = case board ! to move of
 updateCastlingRightsMove :: BoardState -> Move -> [CastlingRight]
 updateCastlingRightsMove board move = case board ! from move of
   Just (Piece c King) -> [CastlingRight side c | side <- [QueenSide,KingSide]]
-  Just (Piece c Rook) -> case fst $ from move of
+  Just (Piece c Rook) -> case fst $ locToFR $ from move of
     FA -> [CastlingRight QueenSide c]
     FH -> [CastlingRight KingSide  c]
     _  -> []

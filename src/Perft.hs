@@ -42,7 +42,7 @@ pLocus :: Parser Locus
 pLocus = do
   file <- pFile
   rank <- pRank
-  return (file,rank)
+  return $ frToLoc (file,rank)
 
 pMove :: Parser Move
 pMove = do
@@ -84,8 +84,9 @@ readMove game = do
         return nextGame
 
 perftSplit' :: GameState -> Int -> IO ()
-perftSplit' game 1 = perft game 1
+perftSplit' game 1 = pp game >> perft game 1
 perftSplit' game n = do
+  pp game
   perft game n
   nextState <- readMove game
   perftSplit' nextState $ n - 1

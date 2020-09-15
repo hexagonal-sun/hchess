@@ -49,7 +49,8 @@ instance PrettyPrint File where
     FH-> 'h'
 
 instance PrettyPrint Locus where
-  pp (file,rank) = pp file >> pp rank
+  pp l = case locToFR l of
+    (file, rank) -> pp file >> pp rank
  
 instance PrettyPrint Piece where
   pp (Piece White k) = putChar $ toUpper $ getPieceKindChar k
@@ -68,7 +69,7 @@ putRank :: BoardState -> Rank -> IO ()
 putRank b rank = do
   pp rank >> putChar ' '
   let idxes = [(f, rank) | f <- [minBound..] ::[File]]
-  mapM_ (pp . (b !)) idxes
+  mapM_ (\i -> (pp $ b ! frToLoc i)) $ idxes
 
 instance PrettyPrint EP.EnPassant where
   pp (EP.EnPassant Nothing) = putChar '-'

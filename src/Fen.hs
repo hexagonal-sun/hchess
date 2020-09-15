@@ -94,21 +94,21 @@ pFen = do
 createBoardRow :: [FENSpec] -> Maybe Locus ->  FenMonad [(Locus,SquareState)]
 createBoardRow []      Nothing      = return []
 createBoardRow _       Nothing      = throwError $ ProcessingError RowTooLong
-createBoardRow []     (Just (_, r)) = throwError $ ProcessingError $ RowTooShort r
+createBoardRow []     (Just l) = throwError $ ProcessingError $ RowTooShort $ locToRank l
 createBoardRow (s:xs) (Just l)      = case s of
   Left piece -> do
-    np <- createBoardRow xs (move l [East])
+    np <- createBoardRow xs (move l east)
     return $ (l,Just piece):np
   Right (FENSpace n) -> do
-    let ray  = l:applyVector l (n - 1) [East]
-    let nextLocus = move (last ray) [East]
+    let ray  = l:applyVector l (n - 1) east
+    let nextLocus = move (last ray) east
     np <- createBoardRow xs nextLocus
     return $ map (,Nothing) ray ++ np
 
 createBoard :: [[FENSpec]] -> FenMonad [(Locus,SquareState)]
 createBoard s = do
-  let start = (FA,R8)
-      rows = start:applyVector start 7 [South]
+  let start = frToLoc (FA,R8)
+      rows = start:applyVector start 7 south
       ls = zip rows s
   concatMapM (\(rs,spec) -> createBoardRow spec $ Just rs) ls
 
@@ -123,7 +123,7 @@ parseFen s = case parse pFen "f" s of
   Left r -> throwError $ ParseError $ errorBundlePretty r
   Right (FEN spec c cr) -> do
     boardInitaliser <- createBoard spec
-    let b = array boardBounds boardInitaliser
+    let b = emptyBoard // boardInitaliser
     whiteKing <- locateKing b White
     blackKing <- locateKing b Black
     return $ GameState b c whiteKing blackKing EP.defaultState $ CR.create cr

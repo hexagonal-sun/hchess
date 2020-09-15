@@ -28,11 +28,11 @@ updateBoard m b = b // [(from m, Nothing),
 makeMove' :: GameState -> PieceKind -> Move -> BoardState
 makeMove' game piece move = foldr updateBoard (board game) moves
   where m = [move]
-        fr = snd $ from move
+        fr = snd $ locToFR $ from move
         moves = case piece of
-          King -> case (fst $ from move, fst $ to move) of
-            (FE,FG) -> Move (FH,fr) (FF,fr) Nothing:m
-            (FE,FC) -> Move (FA,fr) (FD,fr) Nothing:m
+          King -> case (fst $ locToFR $ from move, fst $ locToFR $ to move) of
+            (FE,FG) -> Move (frToLoc (FH,fr)) (frToLoc (FF,fr)) Nothing:m
+            (FE,FC) -> Move (frToLoc (FA,fr)) (frToLoc (FD,fr)) Nothing:m
             _ -> m
           Pawn -> case EP.captureLoc (enPassant game) $ to move of
             Nothing -> m
@@ -50,4 +50,4 @@ makeMove g@(GameState b nextColour wK bK _ cr) move =
             ncr = CR.update (castlingRights g) (board g) move
 
 newGame :: GameState
-newGame = GameState startingBoard White (FE,R1) (FE,R8) EP.defaultState CR.defaultState
+newGame = GameState startingBoard White (frToLoc (FE,R1)) (frToLoc (FE,R8)) EP.defaultState CR.defaultState
