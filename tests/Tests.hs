@@ -10,7 +10,7 @@ perftTest (PerftTest fen perfts) = testCase ("Perft: " ++ fen) $ do
   let fp = parseFen fen
   case fp of
     Left e -> assertFailure $ show e
-    Right game -> mapM_ (\(i, p) -> assertEqual ("perft " ++ show i) (perftInt i game) p) $
+    Right game -> mapM_ (\(i, p) -> assertEqual ("perft " ++ show i) p $ perftInt i game) $
       zip [1..] perfts
 
 perftTests :: TestTree
