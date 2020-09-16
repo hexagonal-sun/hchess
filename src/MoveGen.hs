@@ -72,7 +72,7 @@ canAttack game c l = EP.isEPLocus (enPassant game) l || attackablePiece
       Just (Piece pc _) -> pc /= c
 
 pruneAttackRay :: GameState -> Colour -> Ray -> Ray
-pruneAttackRay game c ray = filter (canAttack game c) ray
+pruneAttackRay game c = filter (canAttack game c)
 
 isOccupied :: GameState -> Locus -> Bool
 isOccupied game l = case board game ! l of
@@ -80,7 +80,7 @@ isOccupied game l = case board game ! l of
   Just _ -> True
 
 pruneMoveRay :: GameState -> Ray -> Ray
-pruneMoveRay game ray = takeWhile (not . isOccupied game) ray
+pruneMoveRay game = takeWhile (not . isOccupied game)
 
 pruneAttackMoveRay :: GameState -> Colour -> Ray -> Ray
 pruneAttackMoveRay _ _ []  = []
@@ -154,4 +154,4 @@ moveGen' game from = case board game ! from of
 
 moveGen :: GameState -> [(Move, GameState)]
 moveGen game = filter (\(_,g) -> not $ isInCheck (toMove game) g) candidateMoves
-  where candidateMoves = concatMap (moveGen' game) $ validLocaii
+  where candidateMoves = concatMap (moveGen' game) validLocaii

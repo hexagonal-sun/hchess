@@ -61,5 +61,4 @@ defaultState :: CastlingRights
 defaultState = TM.empty False
  
 create :: [CastlingRight] -> CastlingRights
-create []     = TM.empty False
-create (r:rs) = TM.insert r True $ create rs
+create = foldr (`TM.insert` True) (TM.empty False)

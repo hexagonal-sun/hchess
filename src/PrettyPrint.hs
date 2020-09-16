@@ -69,7 +69,7 @@ putRank :: BoardState -> Rank -> IO ()
 putRank b rank = do
   pp rank >> putChar ' '
   let idxes = [(f, rank) | f <- [minBound..] ::[File]]
-  mapM_ (\i -> (pp $ b ! frToLoc i)) $ idxes
+  mapM_ (\i -> pp $ b ! frToLoc i) idxes
 
 instance PrettyPrint EP.EnPassant where
   pp (EP.EnPassant Nothing) = putChar '-'
