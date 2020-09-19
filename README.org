@@ -8,16 +8,16 @@ printing of an initial board state.
 
 Current features:
  - Data types for Ranks and Files.
- - Define a tuple of (File, Rank) as a Locus.
+ - [[https://www.chessprogramming.org/0x88][0x88]] Board representaiton using [[https://hackage.haskell.org/package/base-4.14.0.0/docs/Data-Ix.html][Array]] indexed by Locus.
+ - Translation functions for translating between 0x88 locaii and File, Ranks.
  - Direction types and applications to Locus to generate a new Locus.
- - [[https://hackage.haskell.org/package/base-4.14.0.0/docs/Data-Ix.html][Ix]] implementation of Locus.
  - Piece data types:
    - Piece Kind
    - Colour
    - Piece
- - Board representaiton using [[https://hackage.haskell.org/package/base-4.14.0.0/docs/Data-Ix.html][Array]] indexed by Locus
  - Creation of starting board.
- - Pretty printing of board layout.
- - GameState class that encapsulates all game state
- - Move generation that's valid up to perft 4 from starting position
- - [[https://www.chessprogramming.org/Perft][Perft]] checking of movegen
+ - Pretty printing of game state.
+ - GameState class that encapsulates all game state.
+ - Move generation that's valid up to perft 5 from starting position and various
+   other positions.
+ - [[https://www.chessprogramming.org/Perft][Perft]] testsuite.
