@@ -31,6 +31,7 @@ Library
                     , EnPassant
                     , Move
                     , CastlingRights
+                    , Evaluate
 
   build-depends:      array
                     , base >=4.13 && <4.14
@@ -38,6 +39,7 @@ Library
                     , megaparsec
                     , mtl
                     , total-map
+                    , containers
 
 executable hchess
   hs-source-dirs:     exe

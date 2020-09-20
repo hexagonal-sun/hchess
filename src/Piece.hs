@@ -8,7 +8,7 @@ module Piece (
 ) where
 
 data PieceKind = Pawn | Rook | Bishop | Knight | Queen | King
-  deriving(Eq, Show)
+  deriving(Ord ,Eq, Show)
 
 promotionKinds :: [PieceKind]
 promotionKinds = [Rook, Bishop, Knight, Queen]
