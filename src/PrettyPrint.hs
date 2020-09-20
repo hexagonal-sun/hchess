@@ -14,6 +14,7 @@ import Board
 import Locus
 import Game
 import Move
+import Evaluate
 
 class PrettyPrint a where
   pp :: a -> IO ()
@@ -92,6 +93,8 @@ instance PrettyPrint GameState where
     putStr "EnPassant Locus: "
     pp $ enPassant g
     putStrLn ""
+    putStr "Evaluation: "
+    print $ evaluate g
 
 instance PrettyPrint Move where
   pp (Move from to promo) = do
