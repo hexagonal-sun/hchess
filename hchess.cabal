@@ -22,6 +22,7 @@ Library
   Exposed-Modules:    Perft
                     , PrettyPrint
                     , Fen
+                    , Search
 
   other-modules:      Locus
                     , Board
