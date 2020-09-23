@@ -52,13 +52,12 @@ pMove = do
 
 perftInt :: Int -> GameState -> Int
 perftInt 0 _  = 1
-perftInt n state = sum $ map (\(_,s) -> perftInt (n - 1) s) $ moveGen state
+perftInt n state = sum $ map (perftInt (n - 1)) $ moveGen state
 
 perft :: GameState -> Int -> IO ()
 perft state n = do
-  let states = moveGen state
-  let perfts = map (\(move, s) -> (move, perftInt (n - 1) s)) states
-  mapM_ (\(move,num) -> pp move >> putStr ": " >> print num) perfts
+  let perfts = map (\s -> (s, perftInt (n - 1) s)) $ moveGen state
+  mapM_ (\(g, num) -> (pp $ head $ madeMoves g) >> putStr ": " >> print num) perfts
   let total = foldl (\x (_,p) -> x + p) 0 perfts
   putStrLn $ "Perft " ++ show n ++ " total: " ++ show total
 

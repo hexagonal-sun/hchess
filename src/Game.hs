@@ -14,6 +14,7 @@ import Move
 data GameState = GameState
   { board :: BoardState
   , toMove  :: Colour
+  , madeMoves :: [Move]
   , wKing :: Locus
   , bKing :: Locus
   , enPassant :: EP.EnPassant
@@ -41,13 +42,13 @@ makeMove' game piece move = foldr updateBoard (board game) moves
 
 
 makeMove :: GameState -> Move -> Maybe GameState
-makeMove g@(GameState b nextColour wK bK _ cr) move =
+makeMove g@(GameState b nextColour moves wK bK _ cr) move =
   case b ! from move of
     Nothing -> Nothing
-    Just (Piece c k)  -> Just $ GameState (makeMove' g k move) (switch nextColour) nwK nbK (EP.update k move) ncr
+    Just (Piece c k)  -> Just $ GameState (makeMove' g k move) (switch nextColour) (move:moves) nwK nbK (EP.update k move) ncr
       where nwK = if from move == wK then to move else wK
             nbK = if from move == bK then to move else bK
             ncr = CR.update (castlingRights g) (board g) move
 
 newGame :: GameState
-newGame = GameState startingBoard White (frToLoc (FE,R1)) (frToLoc (FE,R8)) EP.defaultState CR.defaultState
+newGame = GameState startingBoard White [] (frToLoc (FE,R1)) (frToLoc (FE,R8)) EP.defaultState CR.defaultState

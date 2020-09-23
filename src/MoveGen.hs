@@ -140,18 +140,16 @@ genMoves from to (Piece c Pawn) = case locToRank to of
        | otherwise                -> [Move from to Nothing]
 genMoves from to _ = [Move from to Nothing]
 
-moveGen' :: GameState -> Locus -> [(Move, GameState)]
+moveGen' :: GameState -> Locus -> [GameState]
 moveGen' game from = case board game ! from of
   Nothing -> []
   Just (Piece c _) | c /= toMove game -> []
-  Just p@(Piece c k) -> mapMaybe (\move -> case makeMove game move of
-                                     Nothing -> Nothing
-                                     Just state -> Just (move, state)) moves
+  Just p@(Piece c k) -> mapMaybe (makeMove game) moves
     where rays = getRays from p
           validMoves = pruneMoves game c rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
           moves = concatMap (\to -> genMoves from to p) validMoves'
 
-moveGen :: GameState -> [(Move, GameState)]
-moveGen game = filter (\(_,g) -> not $ isInCheck (toMove game) g) candidateMoves
+moveGen :: GameState -> [GameState]
+moveGen game = filter (not . isInCheck (toMove game)) candidateMoves
   where candidateMoves = concatMap (moveGen' game) validLocaii

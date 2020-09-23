@@ -126,4 +126,4 @@ parseFen s = case parse pFen "f" s of
     let b = emptyBoard // boardInitaliser
     whiteKing <- locateKing b White
     blackKing <- locateKing b Black
-    return $ GameState b c whiteKing blackKing EP.defaultState $ CR.create cr
+    return $ GameState b c [] whiteKing blackKing EP.defaultState $ CR.create cr
