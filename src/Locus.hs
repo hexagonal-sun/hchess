@@ -17,7 +17,6 @@ module Locus (
   repeatEntireSpan
 ) where
 
-import Control.Monad
 import Data.Maybe
 import Data.Word
 import Data.Bits
