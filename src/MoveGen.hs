@@ -7,7 +7,6 @@ import qualified Data.TotalMap as TM
 import qualified EnPassant as EP
 import qualified CastlingRights as CR
 import Data.Array
-import Debug.Trace
 import Board
 import Game
 import Locus
