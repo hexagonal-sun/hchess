@@ -101,5 +101,5 @@ instance PrettyPrint Move where
     pp src
     pp dst
     case promo of
-      Just (Piece c k) -> putChar $ getPieceKindChar k
+      Just (Piece _ k) -> putChar $ getPieceKindChar k
       Nothing -> return ()
