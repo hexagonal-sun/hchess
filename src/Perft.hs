@@ -46,9 +46,9 @@ pLocus = do
 
 pMove :: Parser Move
 pMove = do
-  from <- pLocus
-  to   <- pLocus
-  return $ Move from to Nothing
+  src <- pLocus
+  dst   <- pLocus
+  return $ Move src dst Nothing
 
 perftInt :: Int -> GameState -> Int
 perftInt 0 _  = 1
@@ -75,7 +75,7 @@ readMove game = do
       putStr "Could not parse move: "
       putStrLn $ errorBundlePretty bundle
       readMove game
-    Right move -> case makeMove game move of
+    Right m -> case makeMove game m of
       Nothing -> do
         putStrLn $ "Error: " ++ moveStr ++ " is invalid."
         readMove game
