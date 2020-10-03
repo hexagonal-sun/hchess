@@ -6,7 +6,6 @@ import Data.Array
 import Data.Char
 import Data.Void
 import Text.Megaparsec hiding (State)
-import qualified Data.TotalMap as TM
 import qualified CastlingRights as CR
 import Text.Megaparsec.Char
 import Control.Monad.Except
