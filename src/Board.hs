@@ -7,7 +7,6 @@ module Board (
 ) where
 import Locus
 import Piece
-import Data.Ix
 import Data.Array
 import Data.Bits
 
