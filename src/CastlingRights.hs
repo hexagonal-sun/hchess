@@ -40,22 +40,22 @@ crFromLocus l = case locToFR l of
   (file, rank) -> CastlingRight <$> csFromFile file <*> ccFromRank rank
 
 updateCastlingRightsCapture :: BoardState -> Move -> [CastlingRight]
-updateCastlingRightsCapture board move = case board ! to move of
-  Just (Piece c Rook) -> mapMaybe crFromLocus [to move]
+updateCastlingRightsCapture board m = case board ! to m of
+  Just (Piece _ Rook) -> mapMaybe crFromLocus [to m]
   _                   -> []
 
 updateCastlingRightsMove :: BoardState -> Move -> [CastlingRight]
-updateCastlingRightsMove board move = case board ! from move of
+updateCastlingRightsMove board m = case board ! from m of
   Just (Piece c King) -> [CastlingRight side c | side <- [QueenSide,KingSide]]
-  Just (Piece c Rook) -> case fst $ locToFR $ from move of
+  Just (Piece c Rook) -> case fst $ locToFR $ from m of
     FA -> [CastlingRight QueenSide c]
     FH -> [CastlingRight KingSide  c]
     _  -> []
   _  -> []
 
 update :: CastlingRights -> BoardState -> Move -> CastlingRights
-update cr board move = foldr (`TM.insert` False) cr nullCr
-  where nullCr = updateCastlingRightsMove board move ++ updateCastlingRightsCapture board move
+update cr board m = foldr (`TM.insert` False) cr nullCr
+  where nullCr = updateCastlingRightsMove board m ++ updateCastlingRightsCapture board m
 
 defaultState :: CastlingRights
 defaultState = TM.empty False
