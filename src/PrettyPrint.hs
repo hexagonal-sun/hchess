@@ -97,9 +97,9 @@ instance PrettyPrint GameState where
     print $ evaluate g
 
 instance PrettyPrint Move where
-  pp (Move from to promo) = do
-    pp from
-    pp to
+  pp (Move src dst promo) = do
+    pp src
+    pp dst
     case promo of
       Just (Piece c k) -> putChar $ getPieceKindChar k
       Nothing -> return ()
