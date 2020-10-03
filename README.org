@@ -1,5 +1,7 @@
 #+TITLE: HChess
 
+  [[https://travis-ci.com/github/hexagonal-sun/hchess][https://travis-ci.com/hexagonal-sun/hchess.svg?branch=master]]
+
 HChess is an attempt to learn haskell by means of writing a chess engine,
 something I've [[https://github.com/hexagonal-sun/mace][previouisly done in C++]].
 
@@ -20,4 +22,6 @@ Current features:
  - GameState class that encapsulates all game state.
  - Move generation that's valid up to perft 5 from starting position and various
    other positions.
- - [[https://www.chessprogramming.org/Perft][Perft]] testsuite.
+ - [[https://www.chessprogramming.org/Perft][Perft]] testsuite with Travis CI integration.
+ - Game tree search with:
+   - [[https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning][Alpha Beta Pruning]]
