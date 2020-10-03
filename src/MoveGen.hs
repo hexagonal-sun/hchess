@@ -119,13 +119,13 @@ genCastlingMoves' game (CR.CastlingRight side colour) =
   let dir      = if side == CR.QueenSide then west else east
       obsRaySz = if side == CR.QueenSide then 3 else 2
       rank     = if colour == White then R1 else R8
-      from     = frToLoc (FE,rank)
-      obsRay   = applyVector from obsRaySz dir
+      src      = frToLoc (FE,rank)
+      obsRay   = applyVector src obsRaySz dir
       isOcc    = any (isOccupied game) obsRay
-      checkRay = applyVector from 2 dir
-      to       = last checkRay
+      checkRay = applyVector src 2 dir
+      dst      = last checkRay
       isCheck  = any (isSquareUnderAttack game (switch $ toMove game)) checkRay
-  in if isOcc || isCheck then Nothing else Just to
+  in if isOcc || isCheck then Nothing else Just dst
 
 genCastlingMoves :: GameState -> [Locus]
 genCastlingMoves game | isInCheck (toMove game) game = []
@@ -134,20 +134,20 @@ genCastlingMoves game | isInCheck (toMove game) game = []
                                                else Nothing) $ [CR.CastlingRight side (toMove game) | side <- [CR.QueenSide,CR.KingSide]]
 
 genMoves :: Locus -> Locus -> Piece -> [Move]
-genMoves from to (Piece c Pawn) = case locToRank to of
-  rank | rank == R1 || rank == R8 -> map (\pp -> Move from to (Just $ Piece c pp)) promotionKinds
-       | otherwise                -> [Move from to Nothing]
-genMoves from to _ = [Move from to Nothing]
+genMoves src dst (Piece c Pawn) = case locToRank dst of
+  rank | rank == R1 || rank == R8 -> map (\pp -> Move src dst (Just $ Piece c pp)) promotionKinds
+       | otherwise                -> [Move src dst Nothing]
+genMoves src dst _ = [Move src dst Nothing]
 
 moveGen' :: GameState -> Locus -> [GameState]
-moveGen' game from = case board game ! from of
+moveGen' game src = case board game ! src of
   Nothing -> []
   Just (Piece c _) | c /= toMove game -> []
   Just p@(Piece c k) -> mapMaybe (makeMove game) moves
-    where rays = getRays from p
+    where rays = getRays src p
           validMoves = pruneMoves game c rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
-          moves = concatMap (\to -> genMoves from to p) validMoves'
+          moves = concatMap (\dst -> genMoves src dst p) validMoves'
 
 moveGen :: GameState -> [GameState]
 moveGen game = filter (not . isInCheck (toMove game)) candidateMoves
