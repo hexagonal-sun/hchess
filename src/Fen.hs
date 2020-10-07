@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module Fen (parseFen) where
+module Fen (FEN, pFen, parseFen, processFen) where
 
 import Data.Array
 import Data.Char
@@ -117,12 +117,15 @@ locateKing b c = case filter (\i -> (b ! i) == Just (Piece c King)) $ indices b 
   [x] -> return x
   _:_ -> throwError $ ProcessingError $ TooManyKings c
 
+processFen :: FEN -> FenMonad GameState
+processFen (FEN spec c cr) = do
+   boardInitaliser <- createBoard spec
+   let b = emptyBoard // boardInitaliser
+   whiteKing <- locateKing b White
+   blackKing <- locateKing b Black
+   return $ GameState b c [] whiteKing blackKing EP.defaultState $ CR.create cr
+
 parseFen :: String -> FenMonad GameState
 parseFen s = case parse pFen "f" s of
   Left r -> throwError $ ParseError $ errorBundlePretty r
-  Right (FEN spec c cr) -> do
-    boardInitaliser <- createBoard spec
-    let b = emptyBoard // boardInitaliser
-    whiteKing <- locateKing b White
-    blackKing <- locateKing b Black
-    return $ GameState b c [] whiteKing blackKing EP.defaultState $ CR.create cr
+  Right fen -> processFen fen
