@@ -24,6 +24,7 @@ Library
                     , PrettyPrint
                     , Fen
                     , Search
+                    , Parsers
 
   other-modules:      Locus
                     , Board

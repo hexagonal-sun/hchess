@@ -1,54 +1,16 @@
-module Perft (
-  perftInt,
-  perft,
-  perftSplit) where
+module Perft
+  ( perftInt
+  , perft
+  ,perftSplit
+) where
 
 import Game
 import PrettyPrint
 import MoveGen
 import Fen
-import Locus
-import Move
-import Text.Megaparsec hiding (State)
-import Text.Megaparsec.Char
-import Data.Void
+import Parsers
+import Text.Megaparsec (parse, errorBundlePretty)
 import System.IO
-
-type Parser = Parsec Void String
-
-pRank :: Parser Rank
-pRank = choice
-  [ R1 <$ char '1'
-  , R2 <$ char '2'
-  , R3 <$ char '3'
-  , R4 <$ char '4'
-  , R5 <$ char '5'
-  , R6 <$ char '6'
-  , R7 <$ char '7'
-  , R8 <$ char '8']
-
-pFile :: Parser File
-pFile = choice
-  [ FA <$ char 'a'
-  , FB <$ char 'b'
-  , FC <$ char 'c'
-  , FD <$ char 'd'
-  , FE <$ char 'e'
-  , FF <$ char 'f'
-  , FG <$ char 'g'
-  , FH <$ char 'h']
-
-pLocus :: Parser Locus
-pLocus = do
-  file <- pFile
-  rank <- pRank
-  return $ frToLoc (file,rank)
-
-pMove :: Parser Move
-pMove = do
-  src <- pLocus
-  dst   <- pLocus
-  return $ Move src dst Nothing
 
 perftInt :: Int -> GameState -> Int
 perftInt 0 _  = 1
