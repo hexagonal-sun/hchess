@@ -25,3 +25,5 @@ Current features:
  - [[https://www.chessprogramming.org/Perft][Perft]] testsuite with Travis CI integration.
  - Game tree search with:
    - [[https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning][Alpha Beta Pruning]]
+ - [[https://en.wikipedia.org/wiki/Universal_Chess_Interface][UCI]] implemtnation, allowing communication with various chess programs, such
+   as [[https://github.com/cutechess/cutechess][Cute Chess]].
