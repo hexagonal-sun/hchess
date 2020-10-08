@@ -1,6 +1,8 @@
 module Main where
 
-import Perft
+import Uci
+import Game
+import Control.Monad.State
 
 main :: IO ()
-main = perftSplit
+main = evalStateT uciMain newGame

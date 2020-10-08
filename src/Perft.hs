@@ -7,7 +7,6 @@ module Perft
 import Game
 import PrettyPrint
 import MoveGen
-import Fen
 import Parsers
 import Text.Megaparsec (parse, errorBundlePretty)
 import System.IO
@@ -44,19 +43,10 @@ readMove game = do
       Just nextGame ->
         return nextGame
 
-perftSplit' :: GameState -> Int -> IO ()
-perftSplit' game 1 = pp game >> perft game 1
-perftSplit' game n = do
+perftSplit :: GameState -> Int -> IO ()
+perftSplit game 1 = pp game >> perft game 1
+perftSplit game n = do
   pp game
   perft game n
   nextState <- readMove game
-  perftSplit' nextState $ n - 1
-
-perftSplit :: IO ()
-perftSplit = do
-  ln <- prompt "Position (FEN): "
-  case parseFen ln of
-    Left e -> print e >> perftSplit
-    Right game -> do
-      n <- prompt "Number of perft splits: "
-      perftSplit' game $ read n
+  perftSplit nextState $ n - 1

@@ -23,16 +23,16 @@ Library
   Exposed-Modules:    Perft
                     , PrettyPrint
                     , Fen
+                    , Move
                     , Search
                     , Parsers
+                    , Game
 
   other-modules:      Locus
                     , Board
                     , Piece
-                    , Game
                     , MoveGen
                     , EnPassant
-                    , Move
                     , CastlingRights
                     , Evaluate
 
@@ -49,8 +49,11 @@ executable hchess
   main-is:            Main.hs
   GHC-Options:        -Wall
   default-language:   Haskell2010
+  other-modules:      Uci
   build-depends:      base
                     , hchess
+                    , megaparsec
+                    , mtl
 
 Test-Suite test-hchess
   type:               exitcode-stdio-1.0
