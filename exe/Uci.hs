@@ -24,7 +24,6 @@ type Parser = Parsec Void String
 data PositionSpecifier = FENPos FEN | StartPos
 type Uci = StateT GameState IO
 
-
 data SearchType = BestMove [BestMoveParam] | Perft Int
 
 data BestMoveParam =
@@ -44,6 +43,13 @@ pPositionSpec :: Parser PositionSpecifier
 pPositionSpec = choice
   [ StartPos <$ string "startpos",
     FENPos   <$ string "fen " <*> pFen]
+
+pMoveList :: Parser [Move]
+pMoveList = do
+  space1
+  _ <- string "moves"
+  space1
+  sepBy1 pMove space1
 
 pPerft :: Parser SearchType
 pPerft = space1 >> string "perft" >> space1 >> Perft <$> decimal
@@ -78,7 +84,7 @@ pCommand = choice
   , UCINewGame <$ string "ucinewgame"
   , UCI        <$ string "uci"
   , Display    <$ string "d"
-  , Position   <$ string "position " <*> pPositionSpec <*> many pMove
+  , Position   <$ string "position " <*> pPositionSpec <*> option [] pMoveList
   , Go         <$ string "go" <*> (try pPerft <|> BestMove <$> pBMParams ) ]
 
 applyMoves :: GameState -> [Move] -> Uci ()
