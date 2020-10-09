@@ -12,12 +12,13 @@ import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
 import Control.Monad.State
 import Data.Void ( Void )
+import System.IO
 
 newtype UciError = ParseError String
 
 instance Show UciError where
   show (ParseError s) = "Error parsing UCI Command:\n" ++ s
-            
+
 type Parser = Parsec Void String
 data PositionSpecifier = FENPos FEN | StartPos
 type Uci = StateT GameState IO
@@ -88,4 +89,5 @@ uciMain = do
   case parse pCommand "<stdin>" ln of
     Left e -> lift $ putStrLn $ errorBundlePretty e
     Right command -> handleCommand command
+  lift $ hFlush stdout
   uciMain
