@@ -7,6 +7,7 @@ import Game
 import Search
 import PrettyPrint
 import Perft
+import Piece
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
@@ -24,7 +25,12 @@ data PositionSpecifier = FENPos FEN | StartPos
 type Uci = StateT GameState IO
 
 
-data SearchType = BestMove | Perft Int
+data SearchType = BestMove [BestMoveParam] | Perft Int
+
+data BestMoveParam =
+    Time Colour Int
+  | Increment Colour Int
+
 
 data UCICommand =
    UCI
@@ -42,6 +48,29 @@ pPositionSpec = choice
 pPerft :: Parser SearchType
 pPerft = space1 >> string "perft" >> space1 >> Perft <$> decimal
 
+pColour :: Parser Colour
+pColour = Black <$ char 'b' <|> White <$ char 'w'
+
+pTime :: Parser BestMoveParam
+pTime = do
+  space1
+  c <- pColour
+  _ <- string "time"
+  space1
+  n <- decimal
+  return $ Time c n
+
+pInc :: Parser BestMoveParam
+pInc =  do
+  space1
+  c <- pColour
+  _ <- string "inc"
+  space1
+  n <- decimal
+  return $ Increment c n
+
+pBMParams :: Parser [BestMoveParam]
+pBMParams = many $ choice [try pTime, try pInc]
 
 pCommand :: Parser UCICommand
 pCommand = choice
@@ -50,7 +79,7 @@ pCommand = choice
   , UCI        <$ string "uci"
   , Display    <$ string "d"
   , Position   <$ string "position " <*> pPositionSpec <*> many pMove
-  , Go         <$ string "go" <*> (pPerft <|> pure BestMove) ]
+  , Go         <$ string "go" <*> (try pPerft <|> BestMove <$> pBMParams ) ]
 
 applyMoves :: GameState -> [Move] -> Uci ()
 applyMoves game moves = case foldM makeMove game moves of
@@ -72,7 +101,7 @@ handleCommand (Position (FENPos fen) moves) = do
     Left e -> lift $ print e
     Right game -> applyMoves game moves
 
-handleCommand (Go BestMove) = do
+handleCommand (Go (BestMove _)) = do
   g <- get
   let move = search g 5
   lift $ putStr "bestmove "

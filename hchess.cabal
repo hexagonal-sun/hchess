@@ -27,10 +27,10 @@ Library
                     , Search
                     , Parsers
                     , Game
+                    , Piece
 
   other-modules:      Locus
                     , Board
-                    , Piece
                     , MoveGen
                     , EnPassant
                     , CastlingRights
