@@ -12,8 +12,11 @@ import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
 import Control.Monad.State
+import Control.Concurrent.MVar
+import Control.Concurrent (forkIO, killThread, threadDelay)
 import Data.Void ( Void )
 import System.IO
+import Control.Exception.Base (evaluate)
 
 newtype UciError = ParseError String
 
@@ -87,6 +90,19 @@ pCommand = choice
   , Position   <$ string "position " <*> pPositionSpec <*> option [] pMoveList
   , Go         <$ string "go" <*> (try pPerft <|> BestMove <$> pBMParams ) ]
 
+searchIterDeep :: GameState -> IO ()
+searchIterDeep game = do
+  mv <- newEmptyMVar
+  tid <- forkIO $ do
+    putMVar mv $ search game 1
+    mapM_ (\depth -> (evaluate $ search game depth) >>= swapMVar mv) [2..]
+  threadDelay 200000
+  killThread tid
+  move <- takeMVar mv
+  putStr "bestmove "
+  pp move
+  putStrLn ""
+
 applyMoves :: GameState -> [Move] -> Uci ()
 applyMoves game moves = case foldM makeMove game moves of
   Just g -> put g
@@ -107,12 +123,7 @@ handleCommand (Position (FENPos fen) moves) = do
     Left e -> lift $ print e
     Right game -> applyMoves game moves
 
-handleCommand (Go (BestMove _)) = do
-  g <- get
-  let move = search g 5
-  lift $ putStr "bestmove "
-  lift $ pp move
-  lift $ putStrLn ""
+handleCommand (Go (BestMove _)) = get >>= lift . searchIterDeep
 
 handleCommand (Go (Perft n)) = do
   g <- get
