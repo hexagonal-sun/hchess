@@ -20,22 +20,22 @@ data GameState = GameState
   , enPassant :: EP.EnPassant
   , castlingRights :: CR.CastlingRights }
 
-updateBoard :: Move -> BoardState -> BoardState
-updateBoard m@(Move _ _ (Just p)) b = b // [(from m, Nothing),
-                                            (to   m, Just p)]
-updateBoard m b = b // [(from m, Nothing),
+updateBoard :: Piece -> Move -> BoardState -> BoardState
+updateBoard (Piece c _) m@(Move _ _ (Just k)) b = b // [(from m, Nothing),
+                                                        (to   m, Just (Piece c k))]
+updateBoard _ m b = b // [(from m, Nothing),
                         (to   m, b ! from m)]
 
-makeMove' :: GameState -> PieceKind -> Move -> BoardState
-makeMove' game piece m = foldr updateBoard (board game) moves
+makeMove' :: GameState -> Piece -> Move -> BoardState
+makeMove' game piece m = foldr (updateBoard piece) (board game) moves
   where m' = [m]
         fr = snd $ locToFR $ from m
-        moves = case piece of
-          King -> case (fst $ locToFR $ from m, fst $ locToFR $ to m) of
+        moves = case piece  of
+          (Piece _ King) -> case (fst $ locToFR $ from m, fst $ locToFR $ to m) of
             (FE,FG) -> Move (frToLoc (FH,fr)) (frToLoc (FF,fr)) Nothing:m'
             (FE,FC) -> Move (frToLoc (FA,fr)) (frToLoc (FD,fr)) Nothing:m'
             _ -> m'
-          Pawn -> case EP.captureLoc (enPassant game) $ to m of
+          (Piece _ Pawn) -> case EP.captureLoc (enPassant game) $ to m of
             Nothing -> m'
             Just capturedPawn -> Move (from m) capturedPawn Nothing:m'
           _ -> m'
@@ -45,7 +45,7 @@ makeMove :: GameState -> Move -> Maybe GameState
 makeMove g@(GameState b nextColour ms wK bK _ _) m =
   case b ! from m of
     Nothing -> Nothing
-    Just (Piece _ k)  -> Just $ GameState (makeMove' g k m) (switch nextColour) (m:ms) nwK nbK (EP.update k m) ncr
+    Just p@(Piece _ k)  -> Just $ GameState (makeMove' g p m) (switch nextColour) (m:ms) nwK nbK (EP.update k m) ncr
       where nwK = if from m == wK then to m else wK
             nbK = if from m == bK then to m else bK
             ncr = CR.update (castlingRights g) (board g) m

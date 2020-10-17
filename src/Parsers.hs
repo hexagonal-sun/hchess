@@ -6,25 +6,15 @@ import Piece
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import Data.Void ( Void )
-import Data.Char
 
 type Parser = Parsec Void String
 
-pCharColour :: Char -> Parser Colour
-pCharColour c = choice
-  [ White <$ char (toUpper c)
-  , Black <$ char c]
-
-pPiece :: Parser Piece
-pPiece = choice
-    [ piece Pawn   <$> pCharColour 'p'
-    , piece Rook   <$> pCharColour 'r'
-    , piece Knight <$> pCharColour 'n'
-    , piece Queen  <$> pCharColour 'q'
-    , piece King   <$> pCharColour 'k'
-    , piece Bishop <$> pCharColour 'b'] <?> "piece specifier"
-  where
-    piece = flip Piece
+pPromotionPieceKind :: Parser PieceKind
+pPromotionPieceKind = choice
+  [ Rook   <$ char 'r'
+  , Knight <$ char 'n'
+  , Queen  <$ char 'q'
+  , Bishop <$ char 'b'] <?> "Promotion piece kind specifier"
 
 pRank :: Parser Rank
 pRank = choice
@@ -52,4 +42,4 @@ pLocus :: Parser Locus
 pLocus = frToLoc <$> ((,) <$> pFile <*> pRank)
 
 pMove :: Parser Move
-pMove = Move <$> pLocus <*> pLocus <*> optional pPiece
+pMove = Move <$> pLocus <*> pLocus <*> optional pPromotionPieceKind

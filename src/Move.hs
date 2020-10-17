@@ -6,5 +6,5 @@ import Piece
 data Move = Move
   { from      :: Locus
   , to        :: Locus
-  , promotion :: Maybe Piece}
+  , promotion :: Maybe PieceKind}
   deriving(Eq, Show)

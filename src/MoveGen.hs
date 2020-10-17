@@ -134,8 +134,8 @@ genCastlingMoves game | isInCheck (toMove game) game = []
                                                else Nothing) $ [CR.CastlingRight side (toMove game) | side <- [CR.QueenSide,CR.KingSide]]
 
 genMoves :: Locus -> Locus -> Piece -> [Move]
-genMoves src dst (Piece c Pawn) = case locToRank dst of
-  rank | rank == R1 || rank == R8 -> map (\pp -> Move src dst (Just $ Piece c pp)) promotionKinds
+genMoves src dst (Piece _ Pawn) = case locToRank dst of
+  rank | rank == R1 || rank == R8 -> map (\pp -> Move src dst (Just $ pp)) promotionKinds
        | otherwise                -> [Move src dst Nothing]
 genMoves src dst _ = [Move src dst Nothing]
 
