@@ -90,13 +90,21 @@ pCommand = choice
   , Position   <$ string "position " <*> pPositionSpec <*> option [] pMoveList
   , Go         <$ string "go" <*> (try pPerft <|> BestMove <$> pBMParams ) ]
 
-searchIterDeep :: GameState -> IO ()
-searchIterDeep game = do
+
+calcTimeToSearch :: Colour -> [BestMoveParam] -> Int
+calcTimeToSearch _ []      = 2000000
+calcTimeToSearch c ((Time c' t):params)
+  | c == c' = (t * 1000) `div` 30
+  | otherwise = calcTimeToSearch c params
+calcTimeToSearch c (_:params) = calcTimeToSearch c params
+
+searchIterDeep :: [BestMoveParam] -> GameState -> IO ()
+searchIterDeep params game = do
   mv <- newEmptyMVar
   tid <- forkIO $ do
     putMVar mv $ search game 1
     mapM_ (\depth -> (evaluate $ search game depth) >>= swapMVar mv) [2..]
-  threadDelay 200000
+  threadDelay $ calcTimeToSearch (toMove game) params
   killThread tid
   move <- takeMVar mv
   putStr "bestmove "
@@ -123,7 +131,7 @@ handleCommand (Position (FENPos fen) moves) = do
     Left e -> lift $ print e
     Right game -> applyMoves game moves
 
-handleCommand (Go (BestMove _)) = get >>= lift . searchIterDeep
+handleCommand (Go (BestMove params)) = get >>= lift . searchIterDeep params
 
 handleCommand (Go (Perft n)) = do
   g <- get
