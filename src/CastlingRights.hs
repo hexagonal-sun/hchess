@@ -57,8 +57,9 @@ update :: CastlingRights -> BoardState -> Move -> CastlingRights
 update cr board m = foldr (`TM.insert` False) cr nullCr
   where nullCr = updateCastlingRightsMove board m ++ updateCastlingRightsCapture board m
 
-defaultState :: CastlingRights
-defaultState = TM.empty False
- 
 create :: [CastlingRight] -> CastlingRights
 create = foldr (`TM.insert` True) (TM.empty False)
+
+defaultState :: CastlingRights
+defaultState = create [CastlingRight s c | s <- [KingSide, QueenSide],
+                                           c <- [White, Black]]
