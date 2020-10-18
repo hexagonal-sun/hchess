@@ -21,7 +21,7 @@ data GameState = GameState
   , castlingRights :: CR.CastlingRights }
 
 updateBoard :: Piece -> Move -> BoardState -> BoardState
-updateBoard (Piece c _) m@(Move _ _ (Just k)) b = b // [(from m, Nothing),
+updateBoard (Piece c _) m@(Move _ _ _ (Just k)) b = b // [(from m, Nothing),
                                                         (to   m, Just (Piece c k))]
 updateBoard _ m b = b // [(from m, Nothing),
                         (to   m, b ! from m)]
@@ -32,12 +32,12 @@ makeMove' game piece m = foldr (updateBoard piece) (board game) moves
         fr = snd $ locToFR $ from m
         moves = case piece  of
           (Piece _ King) -> case (fst $ locToFR $ from m, fst $ locToFR $ to m) of
-            (FE,FG) -> Move (frToLoc (FH,fr)) (frToLoc (FF,fr)) Nothing:m'
-            (FE,FC) -> Move (frToLoc (FA,fr)) (frToLoc (FD,fr)) Nothing:m'
+            (FE,FG) -> Move (frToLoc (FH,fr)) (frToLoc (FF,fr)) NotGenerated Nothing:m'
+            (FE,FC) -> Move (frToLoc (FA,fr)) (frToLoc (FD,fr)) NotGenerated Nothing:m'
             _ -> m'
           (Piece _ Pawn) -> case EP.captureLoc (enPassant game) $ to m of
             Nothing -> m'
-            Just capturedPawn -> Move (from m) capturedPawn Nothing:m'
+            Just capturedPawn -> Move (from m) capturedPawn NotGenerated Nothing:m'
           _ -> m'
 
 

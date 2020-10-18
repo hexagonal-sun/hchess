@@ -42,4 +42,4 @@ pLocus :: Parser Locus
 pLocus = frToLoc <$> ((,) <$> pFile <*> pRank)
 
 pMove :: Parser Move
-pMove = Move <$> pLocus <*> pLocus <*> optional pPromotionPieceKind
+pMove = Move <$> pLocus <*> pLocus <*> pure NotGenerated <*> optional pPromotionPieceKind

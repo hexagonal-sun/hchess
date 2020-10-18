@@ -2,16 +2,17 @@ module MoveGen (
   moveGen
 ) where
 
-import Data.Maybe
+import           Board
+import qualified CastlingRights as CR
+import           Data.Array
+import           Data.List (sortOn)
+import           Data.Maybe
 import qualified Data.TotalMap as TM
 import qualified EnPassant as EP
-import qualified CastlingRights as CR
-import Data.Array
-import Board
-import Game
-import Locus
-import Piece
-import Move
+import           Game
+import           Locus
+import           Move
+import           Piece
 
 data RaySpec = RaySpec [Vector] Int
 
@@ -133,11 +134,15 @@ genCastlingMoves game | isInCheck (toMove game) game = []
                                                then genCastlingMoves' game cr
                                                else Nothing) $ [CR.CastlingRight side (toMove game) | side <- [CR.QueenSide,CR.KingSide]]
 
-genMoves :: Locus -> Locus -> Piece -> [Move]
-genMoves src dst (Piece _ Pawn) = case locToRank dst of
-  rank | rank == R1 || rank == R8 -> map (\pp -> Move src dst (Just $ pp)) promotionKinds
-       | otherwise                -> [Move src dst Nothing]
-genMoves src dst _ = [Move src dst Nothing]
+genPromotions :: Locus -> Locus -> [Move]
+genPromotions src dst = map (Move src dst Promotion . Just) promotionKinds
+
+genMoves :: Locus -> Locus -> BoardState -> [Move]
+genMoves src dst b = case (b ! src, locToRank dst) of
+  (Just (Piece _ Pawn), rank) | rank == R1 || rank == R8 -> genPromotions src dst
+  (_, _) -> case b ! dst of
+    Just _  -> [Move src dst Capture Nothing]
+    Nothing -> [Move src dst Quiet Nothing]
 
 moveGen' :: GameState -> Locus -> [GameState]
 moveGen' game src = case board game ! src of
@@ -147,8 +152,9 @@ moveGen' game src = case board game ! src of
     where rays = getRays src p
           validMoves = pruneMoves game c rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
-          moves = concatMap (\dst -> genMoves src dst p) validMoves'
+          moves = concatMap (\dst -> genMoves src dst $ board game) validMoves'
 
 moveGen :: GameState -> [GameState]
-moveGen game = filter (not . isInCheck (toMove game)) candidateMoves
+moveGen game = filter (not . isInCheck (toMove game)) sortedMoves
   where candidateMoves = concatMap (moveGen' game) validLocaii
+        sortedMoves = sortOn (kind . head . madeMoves) candidateMoves
