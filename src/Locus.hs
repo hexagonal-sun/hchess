@@ -6,6 +6,7 @@ module Locus (
   locToFile,
   locToFR,
   frToLoc,
+  locToIdx,
   north,
   east,
   south,
@@ -42,6 +43,9 @@ locToFR l = (locToFile l, locToRank l)
 
 frToLoc :: (File, Rank) -> Locus
 frToLoc (file, rank) = fromIntegral $ (16 * fromEnum rank) + fromEnum file
+
+locToIdx :: Locus -> Word8
+locToIdx l = (l .&. 7) + ((l .&. 0x70) `shiftR` 1)
 
 north :: Vector
 north = 0x10
