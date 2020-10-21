@@ -17,6 +17,7 @@ import Control.Concurrent.MVar
 import Control.Concurrent
 import Data.Void ( Void )
 import System.IO
+import System.Exit (exitSuccess)
 import Control.Exception.Base (evaluate)
 
 newtype UciError = ParseError String
@@ -40,6 +41,7 @@ data UCICommand =
  | IsReady
  | UCINewGame
  | Display
+ | Quit
  | Position PositionSpecifier [Move]
  | Go SearchType
 
@@ -88,6 +90,7 @@ pCommand = choice
   , UCINewGame <$ string "ucinewgame"
   , UCI        <$ string "uci"
   , Display    <$ string "d"
+  , Quit       <$ string "quit"
   , Position   <$ string "position " <*> pPositionSpec <*> option [] pMoveList
   , Go         <$ string "go" <*> (try pPerft <|> BestMove <$> pBMParams ) ]
 
@@ -134,6 +137,7 @@ handleCommand UCI = lift $ putStrLn $ "id name hchess\n" ++
                                       "uciok"
 handleCommand IsReady = lift $ putStrLn "readyok"
 handleCommand Display = get >>= lift . pp
+handleCommand Quit    = lift exitSuccess
 handleCommand UCINewGame = do
   put newGame
   lift $ putStrLn ""
