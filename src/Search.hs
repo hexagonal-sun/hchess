@@ -1,10 +1,10 @@
-module Search (search) where
+module Search (search, EvaluatedNode(..)) where
 
 import Game
 import Piece
-import Move
 import Data.Tree
 import MoveGen
+import Move
 import Evaluate
 import Data.List
 import Data.Ord
@@ -32,9 +32,9 @@ prune 0 (Node g _)  = Node g []
 prune n (Node g sg) = Node g (map (prune $ n - 1) sg)
 
 abDescend :: SearchState -> Tree GameState -> EvaluatedNode
-abDescend s n@(Node g _) = EvaluatedNode v g
+abDescend s n = EvaluatedNode (- eval en) (state en)
   where flipState = SearchState (-colour s) (-beta s) (-alpha s)
-        v         = - (eval $ negaab flipState n)
+        en =  negaab flipState n
 
 updateState :: SearchState -> EvaluatedNode -> SearchState
 updateState s n = SearchState (colour s) (max (eval n) $ alpha s) (beta s)
@@ -54,8 +54,12 @@ negaab s (Node _ (child:children)) = snd $ fromEither $ foldM abScan initialStat
   where firstNode    = abDescend s child
         initialState = (updateState s firstNode, firstNode)
 
-search :: GameState -> Int -> Move
-search g depth   = head . madeMoves $ state bestNode
-  where s        = if toMove g == White then SearchState 1 (-inf) inf
-                                        else SearchState (-1) inf (-inf)
+getPV :: GameState -> GameState -> [Move]
+getPV g bestNode = moveList bestNode \\ moveList g
+  where moveList = reverse . madeMoves
+
+search :: GameState -> Int -> (Double, [Move])
+search g depth = (eval bestNode, getPV g $ state bestNode)
+  where s = if toMove g == White then SearchState 1 (-inf) inf
+                                 else SearchState (-1) inf (-inf)
         bestNode = negaab s . prune depth . unfoldTree unfoldGame $ g

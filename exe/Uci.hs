@@ -4,16 +4,17 @@ import Move
 import Fen
 import Parsers
 import Game
-import Search
+import qualified Search as Search
 import PrettyPrint
 import Perft
 import Piece
 import Text.Megaparsec hiding (State)
+import Data.List
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
 import Control.Monad.State
 import Control.Concurrent.MVar
-import Control.Concurrent (forkIO, killThread, threadDelay)
+import Control.Concurrent
 import Data.Void ( Void )
 import System.IO
 import Control.Exception.Base (evaluate)
@@ -98,17 +99,28 @@ calcTimeToSearch c ((Time c' t):params)
   | otherwise = calcTimeToSearch c params
 calcTimeToSearch c (_:params) = calcTimeToSearch c params
 
+searchIterDeep' :: MVar (Maybe Move) -> GameState -> Int -> IO ()
+searchIterDeep' mv g depth = do
+  (score, pv) <- evaluate $ Search.search g depth
+  if length pv /= depth then myThreadId >>= killThread >> yield else do
+    let bestMove = head pv
+        putSpace = putStr " "
+    putStr $ "info depth " ++ show depth ++ " score " ++ (show score) ++ " pv "
+    sequence_ . intersperse putSpace . map pp $ pv
+    putStrLn ""
+    void $ swapMVar mv (Just bestMove)
+
 searchIterDeep :: [BestMoveParam] -> GameState -> IO ()
 searchIterDeep params game = do
-  mv <- newEmptyMVar
-  tid <- forkIO $ do
-    putMVar mv $ search game 1
-    mapM_ (\depth -> (evaluate $ search game depth) >>= swapMVar mv) [2..]
+  mv <- newMVar Nothing
+  tid <- forkIO $ mapM_ (searchIterDeep' mv game) [1..]
   threadDelay $ calcTimeToSearch (toMove game) params
-  killThread tid
   move <- takeMVar mv
+  killThread tid
   putStr "bestmove "
-  pp move
+  case move of
+    Just m -> pp m
+    Nothing -> putStrLn "(none)"
   putStrLn ""
 
 applyMoves :: GameState -> [Move] -> Uci ()
