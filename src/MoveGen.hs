@@ -1,5 +1,6 @@
 module MoveGen (
-  moveGen
+    moveGen
+  , isInCheck
 ) where
 
 import           Board
