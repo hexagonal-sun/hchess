@@ -23,17 +23,13 @@ pieceMagMap = Map.fromList [
   , (King, 0)
  ]
 
-
 psqtValue :: Piece -> Locus -> Double
 psqtValue p l = psqt p Vector.! (fromIntegral $ locToIdx l)
 
-pieceValue :: Piece -> Double
-pieceValue (Piece c k) = if c == White then mag else negate mag
-  where mag = pieceMagMap Map.! k
-
 squareValue :: SquareState -> Locus -> Double
 squareValue Nothing _ = 0
-squareValue (Just p) l  = pieceValue p + psqtValue p l
+squareValue (Just p@(Piece c k)) l = if c == White then mag else negate mag
+  where mag = pieceMagMap Map.! k + psqtValue p l
 
 evaluate :: GameState -> Double
 evaluate game = sum $ map (\l -> squareValue (board game Array.! l) l) validLocaii
