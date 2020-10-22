@@ -107,9 +107,8 @@ searchIterDeep' mv g depth = do
   (score, pv) <- evaluate $ Search.search g depth
   if length pv /= depth then myThreadId >>= killThread >> yield else do
     let bestMove = head pv
-        putSpace = putStr " "
     putStr $ "info depth " ++ show depth ++ " score " ++ (show score) ++ " pv "
-    sequence_ . intersperse putSpace . map pp $ pv
+    putStr . intercalate " " . map pp $ pv
     putStrLn ""
     void $ swapMVar mv (Just bestMove)
 
@@ -122,7 +121,7 @@ searchIterDeep params game = do
   killThread tid
   putStr "bestmove "
   case move of
-    Just m -> pp m
+    Just m -> putStr . pp $ m
     Nothing -> putStrLn "(none)"
   putStrLn ""
 
@@ -136,7 +135,7 @@ handleCommand UCI = lift $ putStrLn $ "id name hchess\n" ++
                                       "id author Matthew Leach\n" ++
                                       "uciok"
 handleCommand IsReady = lift $ putStrLn "readyok"
-handleCommand Display = get >>= lift . pp
+handleCommand Display = get >>= lift . putStrLn . pp
 handleCommand Quit    = lift exitSuccess
 handleCommand UCINewGame = do
   put newGame
