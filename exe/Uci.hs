@@ -107,7 +107,8 @@ searchIterDeep' mv g depth = do
   (score, pv) <- evaluate $ Search.search g depth
   if length pv /= depth then myThreadId >>= killThread >> yield else do
     let bestMove = head pv
-    putStr $ "info depth " ++ show depth ++ " score " ++ (show score) ++ " pv "
+        iScore = round score :: Integer
+    putStr $ "info depth " ++ show depth ++ " score cp " ++ (show iScore) ++ " pv "
     putStr . intercalate " " . map pp $ pv
     putStrLn ""
     void $ swapMVar mv (Just bestMove)
