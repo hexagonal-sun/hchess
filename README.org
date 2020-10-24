@@ -28,3 +28,4 @@ Current features:
  - [[https://en.wikipedia.org/wiki/Universal_Chess_Interface][UCI]] implemtnation, allowing communication with various chess programs, such
    as [[https://github.com/cutechess/cutechess][Cute Chess]].
  - [[https://en.wikipedia.org/wiki/Iterative_deepening_depth-first_search][Iterative deepening]]
+ - Use [[http://hackage.haskell.org/package/template-haskell][Template Haskell]] to precompute movement rays during MoveGen.
