@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module MoveGen (
     moveGen
   , isInCheck
@@ -9,61 +11,15 @@ import           Data.Array
 import           Data.List (sortOn)
 import           Data.Maybe
 import qualified Data.TotalMap as TM
+import qualified Data.Vector as Vec
 import qualified EnPassant as EP
 import           Game
 import           Locus
 import           Move
 import           Piece
+import           Rays
 
-data RaySpec = RaySpec [Vector] Int
-
-data MovementSpec = DifferingAttack RaySpec RaySpec |
-                    ConsistentAttack RaySpec
-
-data CandidateMoves = AttackOnly  [Ray] |
-                      MoveOnly    [Ray] |
-                      AttackMove  [Ray]
-  deriving(Show)
-
-orthoVecs :: [Vector]
-orthoVecs = [north, east, south, west]
-
-diagVecs :: [Vector]
-diagVecs = [north + east, north + west,
-            south + east, south + west]
-
-kindVectors :: Locus -> Piece -> MovementSpec
-kindVectors l (Piece c Pawn) = DifferingAttack moveVec attackVec
-  where dir = if c == White then north else south
-        atHome = case (snd $ locToFR l,c) of
-          (R7,Black) -> True
-          (R2,White) -> True
-          _          -> False
-        moveVec = RaySpec [dir] $ if atHome then 2 else 1
-        attackVec = RaySpec [dir + east, dir + west] 1
-
-kindVectors _ (Piece _ Knight)   = ConsistentAttack ray
-  where ray = RaySpec [north + north + east,  north + north + west,
-                       south + south + east,  south + south + west,
-                       east + east + north,   east + east + south,
-                       west + west + north,   west + west + south] 1
-
-kindVectors _ (Piece _ King)     = ConsistentAttack ray
-
-  where ray = RaySpec (orthoVecs ++ diagVecs) 1
-kindVectors _ (Piece _ Rook)     = ConsistentAttack ray
-  where ray = RaySpec orthoVecs repeatEntireSpan
-kindVectors _ (Piece _ Bishop)   = ConsistentAttack ray
-  where ray = RaySpec diagVecs repeatEntireSpan
-kindVectors _ (Piece _ Queen)    = ConsistentAttack ray
-  where ray = RaySpec (orthoVecs ++ diagVecs) repeatEntireSpan
-
-getRays :: Locus -> Piece -> [CandidateMoves]
-getRays l p = case kindVectors l p of
-  ConsistentAttack (RaySpec vecs repeatVec) -> [AttackMove $ map (applyVector l repeatVec) vecs]
-  DifferingAttack (RaySpec mVecs mRepeatVec) (RaySpec aVecs aRepeatVec) ->
-    [AttackOnly $ map(applyVector l aRepeatVec) aVecs,
-     MoveOnly   $ map(applyVector l mRepeatVec) mVecs]
+makeRays
 
 canAttack :: GameState -> Colour -> Locus -> Bool
 canAttack game c l = EP.isEPLocus (enPassant game) l || attackablePiece
@@ -107,7 +63,7 @@ isRayAttacking b p (AttackOnly rays) = any (isRayAttacking' b p) rays
 isRayAttacking b p (AttackMove rays) = any (isRayAttacking' b p) rays
 
 isSquareUnderAttack' :: GameState -> Locus -> Piece -> Bool
-isSquareUnderAttack' game l p = any (isRayAttacking (board game) p) $ getRays l p
+isSquareUnderAttack' game l p = any (isRayAttacking (board game) p) $ ((lookupRay p) Vec.! fromIntegral l)
 
 isSquareUnderAttack :: GameState -> Colour -> Locus -> Bool
 isSquareUnderAttack g c l = any (isSquareUnderAttack' g l . Piece (switch c)) allKinds
@@ -150,7 +106,7 @@ moveGen' game src = case board game ! src of
   Nothing -> []
   Just (Piece c _) | c /= toMove game -> []
   Just p@(Piece c k) -> mapMaybe (makeMove game) moves
-    where rays = getRays src p
+    where rays = lookupRay p Vec.! fromIntegral src
           validMoves = pruneMoves game c rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
           moves = concatMap (\dst -> genMoves src dst $ board game) validMoves'

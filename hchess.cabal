@@ -36,6 +36,7 @@ Library
                     , CastlingRights
                     , Evaluate
                     , Psqt
+                    , Rays
 
   build-depends:      array
                     , base
