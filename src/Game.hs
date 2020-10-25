@@ -1,6 +1,5 @@
 module Game (makeMove
             , GameState(..)
-            , newGame
             ) where
 
 import Data.Array
@@ -49,6 +48,3 @@ makeMove g@(GameState b nextColour ms wK bK _ _) m =
       where nwK = if from m == wK then to m else wK
             nbK = if from m == bK then to m else bK
             ncr = CR.update (castlingRights g) (board g) m
-
-newGame :: GameState
-newGame = GameState startingBoard White [] (frToLoc (FE,R1)) (frToLoc (FE,R8)) EP.defaultState CR.defaultState

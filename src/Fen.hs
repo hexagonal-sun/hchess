@@ -1,6 +1,11 @@
 {-# LANGUAGE TupleSections #-}
 
-module Fen (FEN, pFen, parseFen, processFen) where
+module Fen
+  ( FEN
+  , pFen
+  , parseFen
+  , processFen
+  , newGame ) where
 
 import Data.Array
 import Data.Char
@@ -129,3 +134,8 @@ parseFen :: String -> FenMonad GameState
 parseFen s = case parse pFen "f" s of
   Left r -> throwError $ ParseError $ errorBundlePretty r
   Right fen -> processFen fen
+
+newGame :: GameState
+newGame = case parseFen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -" of
+  Left _ -> error "Couldn't parse starting board fen string"
+  Right g -> g

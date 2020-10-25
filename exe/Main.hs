@@ -1,7 +1,7 @@
 module Main where
 
 import Uci
-import Game
+import Fen
 import Control.Monad.State
 
 main :: IO ()
