@@ -7,7 +7,6 @@ module Fen
   , processFen
   , newGame ) where
 
-import Data.Array
 import Data.Char
 import Data.Void
 import Text.Megaparsec hiding (State)
@@ -117,7 +116,7 @@ createBoard s = do
   concatMapM (\(rs,spec) -> createBoardRow spec $ Just rs) ls
 
 locateKing :: BoardState -> Colour -> FenMonad Locus
-locateKing b c = case filter (\i -> (b ! i) == Just (Piece c King)) $ indices b of
+locateKing b c = case filter (\i -> (b ! i) == Just (Piece c King)) $ validLocaii of
   []  -> throwError $ ProcessingError $ NoKing c
   [x] -> return x
   _:_ -> throwError $ ProcessingError $ TooManyKings c

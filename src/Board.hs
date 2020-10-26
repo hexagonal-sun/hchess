@@ -2,18 +2,29 @@ module Board (
   SquareState,
   BoardState,
   emptyBoard,
+  (!),
+  (//),
   validLocaii,
 ) where
+
 import Locus
 import Piece
-import Data.Array
+import qualified Data.Vector as Vec
 import Data.Bits
+import Data.Tuple.Extra
 
 type SquareState = Maybe Piece
-type BoardState  = Array Locus SquareState
+newtype BoardState  = BoardState (Vec.Vector SquareState)
 
 validLocaii :: [Locus]
 validLocaii = (.|.) <$> [0..7] <*>  [0x0,0x10..0x70]
 
+(!) :: BoardState -> Locus -> SquareState
+(!) (BoardState vec) l = vec Vec.! fromIntegral l
+
+(//) :: BoardState -> [(Locus, SquareState)] -> BoardState
+(//) (BoardState vec) assoc = BoardState $ (vec Vec.// a')
+  where a' = map (first fromIntegral) assoc
+
 emptyBoard :: BoardState
-emptyBoard = array (0, 0x7f) [(i, Nothing) | i <- [0..0x7f]]
+emptyBoard = BoardState $ Vec.replicate 0x80 Nothing

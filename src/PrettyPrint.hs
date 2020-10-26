@@ -7,7 +7,6 @@ module PrettyPrint (
 import Data.Char
 import qualified EnPassant as EP
 import qualified CastlingRights as CR
-import Data.Array
 import qualified Data.TotalMap as TM
 import Piece
 import Data.List

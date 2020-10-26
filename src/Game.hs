@@ -2,7 +2,6 @@ module Game (makeMove
             , GameState(..)
             ) where
 
-import Data.Array
 import qualified EnPassant as EP
 import qualified CastlingRights as CR
 import Board

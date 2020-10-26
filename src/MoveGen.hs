@@ -7,7 +7,6 @@ module MoveGen (
 
 import           Board
 import qualified CastlingRights as CR
-import           Data.Array
 import           Data.List (sortOn)
 import           Data.Maybe
 import qualified Data.TotalMap as TM

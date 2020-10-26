@@ -9,7 +9,6 @@ import Psqt
 import MoveGen
 import qualified Data.Map as Map
 import qualified Data.Vector as Vector
-import qualified Data.Array as Array
 import Piece
 
 makePsqt
@@ -41,4 +40,4 @@ terminalEval g = if toMove g == White then negate mag else mag
 
 evaluate :: GameState -> Double
 evaluate game = if (length . moveGen $ game) == 0 then terminalEval game else normalEval
-  where normalEval   = sum $ map (\l -> squareValue (board game Array.! l) l) validLocaii
+  where normalEval   = sum $ map (\l -> squareValue (board game ! l) l) validLocaii
