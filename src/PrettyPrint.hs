@@ -61,8 +61,8 @@ instance PrettyPrint Piece where
   pp (Piece Black k) = pure $ toLower $ getPieceKindChar k
 
 instance PrettyPrint SquareState where
-  pp Nothing = ['.']
-  pp (Just p) = pp p
+  pp (SquareState Nothing) = ['.']
+  pp (SquareState(Just p)) = pp p
 
 instance PrettyPrint (TM.TMap CR.CastlingRight Bool) where
   pp crMap = intercalate "\n" $ map (\cr -> show cr ++ ": " ++ show (crMap TM.! cr)) rights

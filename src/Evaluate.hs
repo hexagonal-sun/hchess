@@ -30,8 +30,8 @@ psqtValue :: Piece -> Locus -> Double
 psqtValue p l = psqt p Vector.! (fromIntegral $ locToIdx l)
 
 squareValue :: SquareState -> Locus -> Double
-squareValue Nothing _ = 0
-squareValue (Just p@(Piece c k)) l = if c == White then mag else negate mag
+squareValue (SquareState Nothing) _ = 0.0
+squareValue (SquareState (Just p@(Piece c k))) l = if c == White then mag else negate mag
   where mag = pieceMagMap Map.! k + psqtValue p l
 
 terminalEval :: GameState -> Double

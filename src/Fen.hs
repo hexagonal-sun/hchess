@@ -101,12 +101,12 @@ createBoardRow []     (Just l) = throwError $ ProcessingError $ RowTooShort $ lo
 createBoardRow (s:xs) (Just l)      = case s of
   Left piece -> do
     np <- createBoardRow xs (move l east)
-    return $ (l,Just piece):np
+    return $ (l,SquareState(Just piece)):np
   Right (FENSpace n) -> do
     let ray  = l:applyVector l (n - 1) east
     let nextLocus = move (last ray) east
     np <- createBoardRow xs nextLocus
-    return $ map (,Nothing) ray ++ np
+    return $ map (,SquareState(Nothing)) ray ++ np
 
 createBoard :: [[FENSpec]] -> FenMonad [(Locus,SquareState)]
 createBoard s = do
@@ -116,7 +116,7 @@ createBoard s = do
   concatMapM (\(rs,spec) -> createBoardRow spec $ Just rs) ls
 
 locateKing :: BoardState -> Colour -> FenMonad Locus
-locateKing b c = case filter (\i -> (b ! i) == Just (Piece c King)) $ validLocaii of
+locateKing b c = case filter (\i -> (b ! i) == SquareState(Just (Piece c King))) $ validLocaii of
   []  -> throwError $ ProcessingError $ NoKing c
   [x] -> return x
   _:_ -> throwError $ ProcessingError $ TooManyKings c

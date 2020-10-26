@@ -19,9 +19,9 @@ data GameState = GameState
   , castlingRights :: CR.CastlingRights }
 
 updateBoard :: Piece -> Move -> BoardState -> BoardState
-updateBoard (Piece c _) m@(Move _ _ _ (Just k)) b = b // [(from m, Nothing),
-                                                        (to   m, Just (Piece c k))]
-updateBoard _ m b = b // [(from m, Nothing),
+updateBoard (Piece c _) m@(Move _ _ _ (Just k)) b = b // [(from m, SquareState (Nothing)),
+                                                        (to   m, SquareState(Just (Piece c k)))]
+updateBoard _ m b = b // [(from m, SquareState(Nothing)),
                         (to   m, b ! from m)]
 
 makeMove' :: GameState -> Piece -> Move -> BoardState
@@ -42,8 +42,8 @@ makeMove' game piece m = foldr (updateBoard piece) (board game) moves
 makeMove :: GameState -> Move -> Maybe GameState
 makeMove g@(GameState b nextColour ms wK bK _ _) m =
   case b ! from m of
-    Nothing -> Nothing
-    Just p@(Piece _ k)  -> Just $ GameState (makeMove' g p m) (switch nextColour) (m:ms) nwK nbK (EP.update k m) ncr
+    SquareState(Nothing) -> Nothing
+    SquareState(Just p@(Piece _ k))  -> Just $ GameState (makeMove' g p m) (switch nextColour) (m:ms) nwK nbK (EP.update k m) ncr
       where nwK = if from m == wK then to m else wK
             nbK = if from m == bK then to m else bK
             ncr = CR.update (castlingRights g) (board g) m

@@ -40,13 +40,13 @@ crFromLocus l = case locToFR l of
 
 updateCastlingRightsCapture :: BoardState -> Move -> [CastlingRight]
 updateCastlingRightsCapture board m = case board ! to m of
-  Just (Piece _ Rook) -> mapMaybe crFromLocus [to m]
-  _                   -> []
+  SquareState (Just (Piece _ Rook)) -> mapMaybe crFromLocus [to m]
+  SquareState (_)                   -> []
 
 updateCastlingRightsMove :: BoardState -> Move -> [CastlingRight]
 updateCastlingRightsMove board m = case board ! from m of
-  Just (Piece c King) -> [CastlingRight side c | side <- [QueenSide,KingSide]]
-  Just (Piece c Rook) -> case fst $ locToFR $ from m of
+  SquareState (Just (Piece c King)) -> [CastlingRight side c | side <- [QueenSide,KingSide]]
+  SquareState (Just (Piece c Rook)) -> case fst $ locToFR $ from m of
     FA -> [CastlingRight QueenSide c]
     FH -> [CastlingRight KingSide  c]
     _  -> []

@@ -24,16 +24,16 @@ canAttack :: GameState -> Colour -> Locus -> Bool
 canAttack game c l = EP.isEPLocus (enPassant game) l || attackablePiece
   where
     attackablePiece = case board game ! l of
-      Nothing -> False
-      Just (Piece pc _) -> pc /= c
+      SquareState(Nothing) -> False
+      SquareState(Just (Piece pc _)) -> pc /= c
 
 pruneAttackRay :: GameState -> Colour -> Ray -> Ray
 pruneAttackRay game c = filter (canAttack game c)
 
 isOccupied :: GameState -> Locus -> Bool
 isOccupied game l = case board game ! l of
-  Nothing -> False
-  Just _ -> True
+  SquareState(Nothing) -> False
+  SquareState(Just _) -> True
 
 pruneMoveRay :: GameState -> Ray -> Ray
 pruneMoveRay game = takeWhile (not . isOccupied game)
@@ -41,8 +41,8 @@ pruneMoveRay game = takeWhile (not . isOccupied game)
 pruneAttackMoveRay :: GameState -> Colour -> Ray -> Ray
 pruneAttackMoveRay _ _ []  = []
 pruneAttackMoveRay game c (l:ls) = case board game ! l of
-  Nothing                    -> l:pruneAttackMoveRay game c ls
-  Just (Piece otherColour _) -> [l | otherColour /= c]
+  SquareState(Nothing)                    -> l:pruneAttackMoveRay game c ls
+  SquareState(Just (Piece otherColour _)) -> [l | otherColour /= c]
 
 pruneMoves :: GameState -> Colour -> [CandidateMoves] -> Ray
 pruneMoves game c = concatMap (\cm -> case cm of
@@ -53,8 +53,8 @@ pruneMoves game c = concatMap (\cm -> case cm of
 isRayAttacking' :: BoardState -> Piece -> Ray -> Bool
 isRayAttacking' _ _ []    = False
 isRayAttacking' b p@(Piece c k) (l:r) = case b ! l of
-  Nothing -> isRayAttacking' b p r
-  Just (Piece c' k') ->  c' == switch c && k' == k
+  SquareState(Nothing) -> isRayAttacking' b p r
+  SquareState(Just (Piece c' k')) ->  c' == switch c && k' == k
 
 isRayAttacking :: BoardState -> Piece -> CandidateMoves -> Bool
 isRayAttacking _ _ (MoveOnly _)      = False
@@ -95,16 +95,16 @@ genPromotions src dst = map (Move src dst Promotion . Just) promotionKinds
 
 genMoves :: Locus -> Locus -> BoardState -> [Move]
 genMoves src dst b = case (b ! src, locToRank dst) of
-  (Just (Piece _ Pawn), rank) | rank == R1 || rank == R8 -> genPromotions src dst
+  (SquareState(Just (Piece _ Pawn)), rank) | rank == R1 || rank == R8 -> genPromotions src dst
   (_, _) -> case b ! dst of
-    Just _  -> [Move src dst Capture Nothing]
-    Nothing -> [Move src dst Quiet Nothing]
+    SquareState(Just _)  -> [Move src dst Capture Nothing]
+    SquareState(Nothing) -> [Move src dst Quiet Nothing]
 
 moveGen' :: GameState -> Locus -> [GameState]
 moveGen' game src = case board game ! src of
-  Nothing -> []
-  Just (Piece c _) | c /= toMove game -> []
-  Just p@(Piece c k) -> mapMaybe (makeMove game) moves
+  SquareState(Nothing) -> []
+  SquareState(Just (Piece c _)) | c /= toMove game -> []
+  SquareState(Just p@(Piece c k)) -> mapMaybe (makeMove game) moves
     where rays = lookupRay p Vec.! fromIntegral src
           validMoves = pruneMoves game c rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
