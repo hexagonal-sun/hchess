@@ -25,7 +25,7 @@ switch :: Colour -> Colour
 switch White = Black
 switch Black = White
 
-data Piece = Piece Colour PieceKind
+data Piece = Piece !Colour !PieceKind
   deriving(Show, Eq)
 
 instance Enum (Piece) where

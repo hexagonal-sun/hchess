@@ -12,12 +12,12 @@ import Control.Monad
 import Data.Either.Extra
 
 data SearchState = SearchState
-  { alpha :: Double
-  , beta :: Double }
+  { alpha :: !Double
+  , beta ::  !Double }
 
 data EvaluatedNode = EvaluatedNode
-  { eval ::Double
-  , state :: GameState }
+  { eval ::  !Double
+  , state :: !GameState }
 
 inf :: Double
 inf = read "Infinity"
@@ -38,7 +38,6 @@ updateState :: SearchState -> Double -> SearchState
 updateState s score = SearchState (max score $ alpha s) (beta s)
 
 type ScanState = (SearchState, EvaluatedNode)
-
 
 selectBestNode :: (a -> a -> Ordering) -> a -> a -> a
 selectBestNode cmp a b = if cmp a b == EQ then a else maxNode
