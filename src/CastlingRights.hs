@@ -7,8 +7,8 @@ module CastlingRights (
 , create
 ) where
 
-import qualified Data.TotalMap as TM
 import Data.Maybe
+import qualified Data.Map.Strict as Map
 import Board
 import Piece
 import Move
@@ -20,7 +20,7 @@ data CastlingSide = KingSide | QueenSide
 data CastlingRight = CastlingRight CastlingSide Colour
   deriving(Show,Eq,Ord)
 
-type CastlingRights = TM.TMap CastlingRight Bool
+type CastlingRights = Map.Map CastlingRight Bool
 
 csFromFile :: File -> Maybe CastlingSide
 csFromFile file = case file of
@@ -53,12 +53,12 @@ updateCastlingRightsMove board m = case board ! from m of
   _  -> []
 
 update :: CastlingRights -> BoardState -> Move -> CastlingRights
-update cr board m = foldr (`TM.insert` False) cr nullCr
+update cr board m = foldr (`Map.insert` False) cr nullCr
   where nullCr = updateCastlingRightsMove board m ++ updateCastlingRightsCapture board m
 
-create :: [CastlingRight] -> CastlingRights
-create = foldr (`TM.insert` True) (TM.empty False)
-
 defaultState :: CastlingRights
-defaultState = create [CastlingRight s c | s <- [KingSide, QueenSide],
-                                           c <- [White, Black]]
+defaultState = Map.fromList [(CastlingRight s c, False) | s <- [KingSide, QueenSide],
+                                                          c <- [White, Black]]
+
+create :: [CastlingRight] -> CastlingRights
+create = foldr (`Map.insert` True) defaultState

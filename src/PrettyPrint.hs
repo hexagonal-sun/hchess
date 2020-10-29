@@ -7,8 +7,9 @@ module PrettyPrint (
 import Data.Char
 import qualified EnPassant as EP
 import qualified CastlingRights as CR
-import qualified Data.TotalMap as TM
+import qualified Data.Map.Strict as Map
 import Piece
+import CastlingRights
 import Data.List
 import Board
 import Locus
@@ -64,8 +65,8 @@ instance PrettyPrint SquareState where
   pp (SquareState Nothing) = ['.']
   pp (SquareState(Just p)) = pp p
 
-instance PrettyPrint (TM.TMap CR.CastlingRight Bool) where
-  pp crMap = intercalate "\n" $ map (\cr -> show cr ++ ": " ++ show (crMap TM.! cr)) rights
+instance PrettyPrint (CastlingRights) where
+  pp crMap = intercalate "\n" $ map (\cr -> show cr ++ ": " ++ show (crMap Map.! cr)) rights
     where rights = CR.CastlingRight <$> [CR.QueenSide,CR.KingSide] <*> [White,Black]
 
 

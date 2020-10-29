@@ -9,7 +9,7 @@ import           Board
 import qualified CastlingRights as CR
 import           Data.List (sortOn)
 import           Data.Maybe
-import qualified Data.TotalMap as TM
+import qualified Data.Map.Strict as Map
 import qualified Data.Vector as Vec
 import qualified EnPassant as EP
 import           Game
@@ -86,7 +86,7 @@ genCastlingMoves' game (CR.CastlingRight side colour) =
 
 genCastlingMoves :: GameState -> [Locus]
 genCastlingMoves game | isInCheck (toMove game) game = []
-                      | otherwise = mapMaybe (\cr -> if castlingRights game TM.! cr
+                      | otherwise = mapMaybe (\cr -> if castlingRights game Map.! cr
                                                then genCastlingMoves' game cr
                                                else Nothing) $ [CR.CastlingRight side (toMove game) | side <- [CR.QueenSide,CR.KingSide]]
 

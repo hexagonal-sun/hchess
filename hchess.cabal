@@ -46,7 +46,6 @@ Library
                     , template-haskell
                     , vector
                     , th-lift-instances
-                    , total-map
                     , containers
 
 executable hchess
