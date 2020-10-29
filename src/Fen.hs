@@ -1,4 +1,5 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Fen
   ( FEN
@@ -116,7 +117,7 @@ createBoard s = do
   concatMapM (\(rs,spec) -> createBoardRow spec $ Just rs) ls
 
 locateKing :: BoardState -> Colour -> FenMonad Locus
-locateKing b c = case filter (\i -> (b ! i) == SquareState(Just (Piece c King))) $ validLocaii of
+locateKing b c = case filter (\i -> (b ! i) == SquareState(Just (Piece c King))) $ $$(validLocaii) of
   []  -> throwError $ ProcessingError $ NoKing c
   [x] -> return x
   _:_ -> throwError $ ProcessingError $ TooManyKings c

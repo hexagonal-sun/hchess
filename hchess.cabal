@@ -43,7 +43,7 @@ Library
                     , extra
                     , megaparsec
                     , mtl
-                    , template-haskell
+                    , template-haskell >= 2.16.0.0
                     , vector
                     , th-lift-instances
                     , containers

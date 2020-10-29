@@ -112,5 +112,5 @@ moveGen' game src = case board game ! src of
 
 moveGen :: GameState -> [GameState]
 moveGen game = filter (not . isInCheck (toMove game)) sortedMoves
-  where candidateMoves = concatMap (moveGen' game) validLocaii
+  where candidateMoves = concatMap (moveGen' game) $$(validLocaii)
         sortedMoves = sortOn (kind . head . madeMoves) candidateMoves

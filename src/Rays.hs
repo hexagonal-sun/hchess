@@ -64,7 +64,7 @@ getRays p l = let  nn = filter (not . null)
      MoveOnly   $ nn . map(applyVector l mRepeatVec) $ mVecs]
 
 makeRayVec :: Piece -> Locus -> [CandidateMoves]
-makeRayVec p l = if l `elem` validLocaii then getRays p l else []
+makeRayVec p l = if l `elem` $$(validLocaii) then getRays p l else []
 
 makeRays' :: Piece -> Q [Clause]
 makeRays' pt@(Piece c k) = do

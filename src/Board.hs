@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Board (
   SquareState(..),
@@ -16,6 +17,8 @@ import Data.Word
 import Data.Tuple.Extra
 import qualified Data.Vector.Storable as Vec
 import Data.Bits ((.|.))
+import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
 import Foreign.Ptr
 import Foreign.Storable
 
@@ -39,8 +42,8 @@ instance Storable (SquareState) where
       0 -> return $ SquareState Nothing
       _ -> return $ SquareState (Just (toEnum . fromIntegral $ n - 1))
 
-validLocaii :: [Locus]
-validLocaii = (.|.) <$> [0..7] <*>  [0x0,0x10..0x70]
+validLocaii :: TExpQ [Locus]
+validLocaii = liftTyped $ (.|.) <$> [0..7] <*>  [0x0,0x10..0x70]
 
 (!) :: BoardState -> Locus -> SquareState
 (!) (BoardState vec) l = vec Vec.! fromIntegral l
