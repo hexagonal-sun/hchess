@@ -95,23 +95,24 @@ pFen = do
   space
   FEN b c <$> pCastlingRights
 
-createBoardRow :: [FENSpec] -> Maybe Locus ->  FenMonad [(Locus,SquareState)]
+createBoardRow :: [FENSpec] -> Maybe PseudoLocus ->  FenMonad [(Locus,SquareState)]
 createBoardRow []      Nothing      = return []
 createBoardRow _       Nothing      = throwError $ ProcessingError RowTooLong
-createBoardRow []     (Just l) = throwError $ ProcessingError $ RowTooShort $ locToRank l
+createBoardRow []     (Just l)      = throwError $ ProcessingError $ RowTooShort $ locToRank . plToLoc $ l
 createBoardRow (s:xs) (Just l)      = case s of
   Left piece -> do
     np <- createBoardRow xs (move l east)
-    return $ (l,SquareState(Just piece)):np
+    return $ (plToLoc l,SquareState(Just piece)):np
   Right (FENSpace n) -> do
-    let ray  = l:applyVector l (n - 1) east
+    let ray       = l:applyVector l (n - 1) east
+    let locRay    = map plToLoc ray
     let nextLocus = move (last ray) east
     np <- createBoardRow xs nextLocus
-    return $ map (,SquareState(Nothing)) ray ++ np
+    return $ map (,SquareState(Nothing)) locRay ++ np
 
 createBoard :: [[FENSpec]] -> FenMonad [(Locus,SquareState)]
 createBoard s = do
-  let start = frToLoc (FA,R8)
+  let start = locToPl . frToLoc $ (FA,R8)
       rows = start:applyVector start 7 south
       ls = zip rows s
   concatMapM (\(rs,spec) -> createBoardRow spec $ Just rs) ls

@@ -10,7 +10,6 @@ import Data.Maybe
 import qualified Data.Vector as Vec
 import Piece
 import Locus
-import Board
 
 data RaySpec = RaySpec [Vector] Int
 
@@ -29,10 +28,10 @@ diagVecs :: [Vector]
 diagVecs = [north + east, north + west,
             south + east, south + west]
 
-kindVectors :: Locus -> Piece -> MovementSpec
+kindVectors :: PseudoLocus -> Piece -> MovementSpec
 kindVectors l (Piece c Pawn) = DifferingAttack moveVec attackVec
   where dir = if c == White then north else south
-        atHome = case (snd $ locToFR l,c) of
+        atHome = case (snd . locToFR . plToLoc $ l,c) of
           (R7,Black) -> True
           (R2,White) -> True
           _          -> False
@@ -55,16 +54,14 @@ kindVectors _ (Piece _ Bishop)   = ConsistentAttack ray
 kindVectors _ (Piece _ Queen)    = ConsistentAttack ray
   where ray = RaySpec (orthoVecs ++ diagVecs) repeatEntireSpan
 
-getRays :: Piece -> Locus -> [CandidateMoves]
+getRays :: Piece -> PseudoLocus -> [CandidateMoves]
 getRays p l = let  nn = filter (not . null)
+                   prToRay = map plToLoc
                    in case kindVectors l p of
-  ConsistentAttack (RaySpec vecs repeatVec) -> [AttackMove $ nn . map (applyVector l repeatVec) $ vecs]
+  ConsistentAttack (RaySpec vecs repeatVec) -> [AttackMove $ nn . map prToRay . map (applyVector l repeatVec) $ vecs]
   DifferingAttack (RaySpec mVecs mRepeatVec) (RaySpec aVecs aRepeatVec) ->
-    [AttackOnly $ nn . map(applyVector l aRepeatVec) $ aVecs,
-     MoveOnly   $ nn . map(applyVector l mRepeatVec) $ mVecs]
-
-makeRayVec :: Piece -> Locus -> [CandidateMoves]
-makeRayVec p l = if l `elem` $$(validLocaii) then getRays p l else []
+    [AttackOnly $ nn . map prToRay . map(applyVector l aRepeatVec) $ aVecs,
+     MoveOnly   $ nn . map prToRay . map(applyVector l mRepeatVec) $ mVecs]
 
 makeRays' :: Piece -> Q [Clause]
 makeRays' pt@(Piece c k) = do
@@ -72,9 +69,9 @@ makeRays' pt@(Piece c k) = do
   kName <- lookupValueName $ show k
 
   piecePat <- pure . ConP 'Piece $ [ConP (fromJust cName) [], ConP (fromJust kName) []]
-  let allLocaii = map (makeRayVec pt) ([minBound..maxBound] :: [Locus])
+  let allRays = map (getRays pt . locToPl) allLocaii
  
-  rays <- lift .  Vec.fromList $ allLocaii
+  rays <- lift .  Vec.fromList $ allRays
   return $ [ Clause [piecePat] (NormalB rays) [] ]
 
 makeRays :: Q [Dec]

@@ -16,7 +16,6 @@ import Piece
 import Data.Word
 import Data.Tuple.Extra
 import qualified Data.Vector.Storable as Vec
-import Data.Bits ((.|.))
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Foreign.Ptr
@@ -43,14 +42,14 @@ instance Storable (SquareState) where
       _ -> return $ SquareState (Just (toEnum . fromIntegral $ n - 1))
 
 validLocaii :: TExpQ [Locus]
-validLocaii = liftTyped $ (.|.) <$> [0..7] <*>  [0x0,0x10..0x70]
+validLocaii = liftTyped $ frToLoc <$> [(f,r) | f <- [FA .. FH], r <- [R1 .. R8]]
 
 (!) :: BoardState -> Locus -> SquareState
-(!) (BoardState vec) l = vec Vec.! fromIntegral l
+(!) (BoardState vec) (Locus l) = vec Vec.! fromIntegral l
 
 (//) :: BoardState -> [(Locus, SquareState)] -> BoardState
 (//) (BoardState vec) assoc = BoardState $ (vec Vec.// a')
-  where a' = map (first fromIntegral) assoc
+  where a' = map (first locToIdx) assoc
 
 emptyBoard :: BoardState
-emptyBoard = BoardState $ Vec.replicate 0x80 (SquareState Nothing)
+emptyBoard = BoardState $ Vec.replicate 64 (SquareState Nothing)

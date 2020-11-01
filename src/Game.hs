@@ -38,12 +38,11 @@ makeMove' game piece m = foldr (updateBoard piece) (board game) moves
             Just capturedPawn -> Move (from m) capturedPawn NotGenerated Nothing:m'
           _ -> m'
 
-
 makeMove :: GameState -> Move -> Maybe GameState
 makeMove g@(GameState b nextColour ms wK bK _ _) m =
   case b ! from m of
     SquareState(Nothing) -> Nothing
-    SquareState(Just p@(Piece _ k))  -> Just $ GameState (makeMove' g p m) (switch nextColour) (m:ms) nwK nbK (EP.update k m) ncr
+    SquareState(Just p@(Piece _ k)) -> Just $ GameState (makeMove' g p m) (switch nextColour) (m:ms) nwK nbK (EP.update k m) ncr
       where nwK = if from m == wK then to m else wK
             nbK = if from m == bK then to m else bK
             ncr = CR.update (castlingRights g) (board g) m

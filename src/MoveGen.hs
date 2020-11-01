@@ -62,7 +62,7 @@ isRayAttacking b p (AttackOnly rays) = any (isRayAttacking' b p) rays
 isRayAttacking b p (AttackMove rays) = any (isRayAttacking' b p) rays
 
 isSquareUnderAttack' :: GameState -> Locus -> Piece -> Bool
-isSquareUnderAttack' game l p = any (isRayAttacking (board game) p) $ ((lookupRay p) Vec.! fromIntegral l)
+isSquareUnderAttack' game (Locus l) p = any (isRayAttacking (board game) p) $ ((lookupRay p) Vec.! fromIntegral l)
 
 isSquareUnderAttack :: GameState -> Colour -> Locus -> Bool
 isSquareUnderAttack g c l = any (isSquareUnderAttack' g l . Piece (switch c)) allKinds
@@ -76,10 +76,10 @@ genCastlingMoves' game (CR.CastlingRight side colour) =
   let dir      = if side == CR.QueenSide then west else east
       obsRaySz = if side == CR.QueenSide then 3 else 2
       rank     = if colour == White then R1 else R8
-      src      = frToLoc (FE,rank)
-      obsRay   = applyVector src obsRaySz dir
+      src      = locToPl . frToLoc $ (FE,rank)
+      obsRay   = map plToLoc $ applyVector src obsRaySz dir
       isOcc    = any (isOccupied game) obsRay
-      checkRay = applyVector src 2 dir
+      checkRay = map plToLoc $ applyVector src 2 dir
       dst      = last checkRay
       isCheck  = any (isSquareUnderAttack game (switch $ toMove game)) checkRay
   in if isOcc || isCheck then Nothing else Just dst
@@ -101,11 +101,11 @@ genMoves src dst b = case (b ! src, locToRank dst) of
     SquareState(Nothing) -> [Move src dst Quiet Nothing]
 
 moveGen' :: GameState -> Locus -> [GameState]
-moveGen' game src = case board game ! src of
+moveGen' game src@(Locus lSrc) = case board game ! src of
   SquareState(Nothing) -> []
   SquareState(Just (Piece c _)) | c /= toMove game -> []
   SquareState(Just p@(Piece c k)) -> mapMaybe (makeMove game) moves
-    where rays = lookupRay p Vec.! fromIntegral src
+    where rays = lookupRay p Vec.! fromIntegral lSrc
           validMoves = pruneMoves game c rays ++ if k == King then genCastlingMoves game else []
           validMoves' = if k == King then filter (not . isSquareUnderAttack game (switch c)) validMoves else validMoves
           moves = concatMap (\dst -> genMoves src dst $ board game) validMoves'

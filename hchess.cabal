@@ -28,9 +28,9 @@ Library
                     , Parsers
                     , Game
                     , Piece
+                    , Locus
 
-  other-modules:      Locus
-                    , Board
+  other-modules:      Board
                     , MoveGen
                     , EnPassant
                     , CastlingRights
@@ -76,6 +76,17 @@ Test-Suite test-piece
   hs-source-dirs:     tests
   default-language:   Haskell2010
   main-is:            PieceTests.hs
+  build-depends:      base
+                    , tasty
+                    , tasty-hunit
+                    , hchess
+
+Test-Suite test-locus
+  type:               exitcode-stdio-1.0
+  GHC-Options:        -Wall
+  hs-source-dirs:     tests
+  default-language:   Haskell2010
+  main-is:            LocusTests.hs
   build-depends:      base
                     , tasty
                     , tasty-hunit
