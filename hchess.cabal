@@ -38,8 +38,7 @@ Library
                     , Psqt
                     , Rays
 
-  build-depends:      array
-                    , base
+  build-depends:      base
                     , extra
                     , megaparsec
                     , mtl
